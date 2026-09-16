@@ -455,5 +455,11 @@
       "baseCommit": "0f8171d2e8f9f612aa928159776b6e091646b444",
       "failedVerifies": 0
     }
-  ]
+  ],
+  "lastWrapup": {
+    "at": "2026-09-16T22:39:09Z",
+    "clean": true,
+    "problems": [],
+    "note": "Bootstrap and first release done: F001-F005 passing (security review 4 rounds, design review 2 rounds). Next: deploy (Q-1), then later-scope items in docs/PROJECT.md."
+  }
 }
