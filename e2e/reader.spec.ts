@@ -139,3 +139,26 @@ test("live: the Paul Graham essay is extracted and readable", async ({ page }) =
   await expect(page.locator(".article-meta")).toContainText("September 2026");
   expect(await page.locator(".prose p").count()).toBeGreaterThan(20);
 });
+
+test.describe("phone in landscape", () => {
+  test.use({ viewport: { width: 750, height: 342 }, hasTouch: true, isMobile: true });
+
+  test("settings open as a bottom sheet in two columns, and an outside tap only closes it", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" }); // measure the sheet after, not during, its slide-in
+    await openPasted(page);
+    await page.getByRole("button", { name: "Reading settings" }).click();
+    const sheet = page.getByRole("dialog", { name: "Reading settings" });
+    await expect.poll(async () => { const b = (await sheet.boundingBox())!; return Math.round(b.y + b.height); }).toBe(342);
+    const box = (await sheet.boundingBox())!;
+    expect(box.x).toBe(0);
+    expect(box.width).toBe(750);
+    const theme = (await page.getByRole("radio", { name: "Sepia" }).boundingBox())!;
+    const font = (await page.getByRole("radio", { name: "Serif" }).boundingBox())!;
+    expect(Math.abs(theme.y - font.y)).toBeLessThan(10); // side by side, not stacked
+    await expect(page.getByRole("radio", { name: "Wide" })).toBeAttached();
+    const y = await page.evaluate(() => window.scrollY);
+    await page.mouse.click(375, box.y / 2);
+    await expect(sheet).toBeHidden();
+    expect(await page.evaluate(() => window.scrollY)).toBe(y);
+  });
+});

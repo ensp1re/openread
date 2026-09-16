@@ -381,13 +381,25 @@ html[data-progress="false"] :is(.progress-track, .topbar-status) {
   }
 }
 
-@media (max-width: 599px) {
+.settings-scrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+
+/*
+ * Bottom sheet on phones: narrow screens, and short touch screens such as a phone in landscape,
+ * where an anchored panel would have only ~290px of height.
+ */
+@media (max-width: 599px), (max-height: 500px) and (pointer: coarse) {
   .settings-panel {
     position: fixed;
     inset: auto 0 0;
     width: auto;
     max-height: 85dvh;
-    padding: 1.25rem var(--gutter) calc(1rem + env(safe-area-inset-bottom));
+    padding: 1.25rem max(var(--gutter), env(safe-area-inset-right)) calc(1rem + env(safe-area-inset-bottom))
+      max(var(--gutter), env(safe-area-inset-left));
     border-width: 1px 0 0;
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -8px 24px rgb(0 0 0 / 0.08);
@@ -398,20 +410,35 @@ html[data-progress="false"] :is(.progress-track, .topbar-status) {
     }
   }
 
-  .settings-width {
-    display: none;
+  /* On phones the sheet is modal: a tap outside closes it without also tapping the text underneath. */
+  .settings-scrim {
+    display: block;
   }
 }
 
-/* On phones the sheet is modal: a tap outside closes it without also tapping the text underneath. */
-.settings-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
+/* Landscape phones: wide but short, so options sit in two columns to keep scrolling to a minimum. */
+@media (min-width: 600px) and (max-height: 500px) and (pointer: coarse) {
+  .settings-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 1.5rem;
+    max-height: 92dvh;
+    padding-top: 1rem;
+  }
+
+  .settings-switch,
+  .settings-footer {
+    grid-column: span 1;
+  }
+
+  .settings-footer {
+    grid-column: 1 / -1;
+  }
 }
 
-@media (min-width: 600px) {
-  .settings-scrim {
+/* The column already fills a phone screen in portrait, so width options would do nothing. */
+@media (max-width: 599px) {
+  .settings-width {
     display: none;
   }
 }
