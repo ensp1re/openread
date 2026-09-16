@@ -17,8 +17,11 @@ export const FETCH_TIMEOUT_MS = 15_000;
 export const MAX_HTML_BYTES = 4 * 1024 * 1024;
 export const MAX_HTML_TAGS = 75_000;
 export const MAX_REDIRECTS = 5;
-/** Hard limit for parsing one page in the worker. Typical articles take under a second; a page at the caps ~5s. */
-export const PARSE_TIMEOUT_MS = 8_000;
+/**
+ * Hard limit for parsing one page in the worker. Typical articles take under a second on a laptop, but
+ * serverless CPUs are ~2–3× slower: a 3MB Wikipedia page took over 8s on Vercel.
+ */
+export const PARSE_TIMEOUT_MS = 20_000;
 export const PARSE_WORKER_MEMORY_MB = 1024;
 
 /** Brysbaert (2019) meta-analysis: adult silent reading of non-fiction averages ~238 wpm. */

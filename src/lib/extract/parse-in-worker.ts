@@ -36,12 +36,16 @@ export function parseInWorker(job: ParseJob): Promise<ParseOutcome> {
         });
         // Running out of memory is a page-size problem, reported and cached like a timeout.
         worker.once("error", (err: NodeJS.ErrnoException) => {
+          console.error("parse worker failed", job.url, err);
           if (err.code === "ERR_WORKER_OUT_OF_MEMORY") {
             clearTimeout(timer);
             resolve({ ok: false, timedOut: true });
           } else finish(null);
         });
-        worker.once("exit", () => finish(null));
+        worker.once("exit", (code) => {
+          if (code !== 0) console.error("parse worker exited", job.url, code);
+          finish(null);
+        });
       }),
   );
 }
