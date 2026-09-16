@@ -18,7 +18,7 @@ export function ShortcutsDialog({ onClose }: ShortcutsDialogProps) {
   }, [onClose]);
 
   return (
-    <dialog ref={ref} className="shortcuts-dialog" aria-labelledby="shortcuts-title" onClick={(e) => e.target === ref.current && onClose()}>
+    <dialog ref={ref} className="shortcuts-dialog" aria-labelledby="shortcuts-title" onClick={(e) => e.target === ref.current && ref.current.close()}>
       <h2 id="shortcuts-title">Keyboard shortcuts</h2>
       <dl>
         {SHORTCUTS.map((s) => (

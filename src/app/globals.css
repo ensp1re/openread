@@ -566,6 +566,7 @@ fieldset:has(input[name="size"]) .segmented [aria-hidden] { font-family: var(--f
 .settings-footer {
   display: flex;
   justify-content: space-between;
+  margin-inline: -0.25rem;
   padding-top: 0.5rem;
   border-top: 1px solid var(--rule);
 }

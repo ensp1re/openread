@@ -92,7 +92,13 @@ export function Reader({ article, onExit }: ReaderProps) {
     setSettingsOpen(false);
   }, []);
 
-  useEffect(syncThemeColor, []);
+  // Keep the browser bar in step with the page, also when Auto follows a system theme change.
+  useEffect(() => {
+    syncThemeColor();
+    const media = matchMedia("(prefers-color-scheme: dark)");
+    media.addEventListener("change", syncThemeColor);
+    return () => media.removeEventListener("change", syncThemeColor);
+  }, []);
 
   // Restore where the reader left off in this article.
   useEffect(() => {
