@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 2,
+  "nextId": 6,
+  "tasks": [
+    {
+      "id": "F001",
+      "behavior": "Walking skeleton: Next.js app with lint, typecheck, unit, build and browser checks all passing",
+      "acceptance": [
+        "pnpm lint, pnpm typecheck, pnpm test and pnpm build pass",
+        "the Playwright suite starts the built app and passes on desktop and mobile projects"
+      ],
+      "dependsOn": [],
+      "state": "verified",
+      "verification": [
+        "e2e"
+      ],
+      "refs": [],
+      "keep": [],
+      "review": false,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-16T21:50:09Z",
+        "checks": [
+          {
+            "id": "e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 7.5,
+            "log": "docs/runs/F001-20260916T215009Z-e2e.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.8,
+            "log": "docs/runs/F001-20260916T215009Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.3,
+            "log": "docs/runs/F001-20260916T215009Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.1,
+            "log": "docs/runs/F001-20260916T215009Z-unit.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.4,
+            "log": "docs/runs/F001-20260916T215009Z-build.log"
+          }
+        ],
+        "taskHash": "6f64d07f49cb986f",
+        "filesHash": "225bf6d84cfa57b8"
+      },
+      "baseCommit": "9bf5e543239185c991132bb10d993a912dc93247",
+      "failedVerifies": 0
+    },
+    {
+      "id": "F002",
+      "behavior": "A pasted article URL is fetched safely and extracted into a clean, structured article",
+      "acceptance": [
+        "Given a page with scripts, event handlers, javascript: links, lazy images, tracking pixels and <font> footnotes, when parsed, then unsafe markup is gone, lazy images have real src, 1x1 images are removed, and footnote markers stay in their paragraph",
+        "Given URLs for 127.0.0.1, ::1, localhost and private ranges, when fetched, then the result is blocked-host",
+        "Given the Paul Graham essay and 4 other real articles, when extracted, then each returns a title and body"
+      ],
+      "dependsOn": [
+        "F001"
+      ],
+      "state": "not_started",
+      "verification": [
+        "extract-unit",
+        "live"
+      ],
+      "refs": [
+        "R-2",
+        "R-3"
+      ],
+      "keep": [
+        "src/app/globals.css"
+      ],
+      "review": true,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": null
+    },
+    {
+      "id": "F003",
+      "behavior": "Home link submission, reader route, error page with fallbacks, and paste-text reader",
+      "acceptance": [
+        "Given the home page, when a URL is entered and Enter pressed, then the browser goes to /read?url=... and shows the result",
+        "Given a blocked URL, when read, then the page says Couldn't extract this article. and offers paste the article text",
+        "Given pasted text, when submitted, then it renders in the reader with reading time"
+      ],
+      "dependsOn": [
+        "F002"
+      ],
+      "state": "not_started",
+      "verification": [
+        "e2e"
+      ],
+      "refs": [
+        "R-1",
+        "R-9"
+      ],
+      "keep": [],
+      "review": false,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": null
+    },
+    {
+      "id": "F004",
+      "behavior": "Research-based typography and four accessible reading themes",
+      "acceptance": [
+        "Given each of Light, Sepia, Soft and Dark, when the reader and settings panel are open, then axe reports no WCAG 2.2 A/AA violations",
+        "Given the reader at phone width, when rendered, then there is no horizontal scroll"
+      ],
+      "dependsOn": [
+        "F003"
+      ],
+      "state": "not_started",
+      "verification": [
+        "a11y",
+        "e2e"
+      ],
+      "refs": [
+        "R-4",
+        "R-5"
+      ],
+      "keep": [
+        "src/lib/extract/*"
+      ],
+      "review": true,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": null
+    },
+    {
+      "id": "F005",
+      "behavior": "Reading controls: settings panel, auto-hiding bar, focus mode and keyboard shortcuts",
+      "acceptance": [
+        "Given the panel, when Sepia, Relaxed, Narrow and Extra large are chosen, then html data attributes change and the theme persists after navigating home",
+        "Given a long article, when scrolling down then up by more than 48px, then the top bar hides then returns",
+        "Given the reader on desktop, when pressing +, -, s, Esc, f, Esc, ?, then size changes back, the panel opens and closes with focus returned, focus mode toggles, and the shortcuts dialog opens"
+      ],
+      "dependsOn": [
+        "F004"
+      ],
+      "state": "not_started",
+      "verification": [
+        "e2e"
+      ],
+      "refs": [
+        "R-6",
+        "R-7",
+        "R-8"
+      ],
+      "keep": [
+        "src/lib/extract/*"
+      ],
+      "review": false,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": null
+    }
+  ]
+}

@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OpenRead
 
-## Getting Started
+Paste an article link. Read it in a quiet, carefully typeset page.
 
-First, run the development server:
+No account, no tracking, nothing stored on a server. Settings and your place in each article stay in your browser.
+
+## What it does
+
+- Extracts the article with Mozilla Readability (the library behind Firefox Reader View), sanitizes it, and keeps headings, lists, quotes, code, images and captions.
+- Sets it in Literata at 20px (18px on phones), line height 1.6, about 66 characters per line.
+- Four themes: Light, Sepia, Soft and Dark, plus Auto, which follows your system. Body text contrast is 10–15:1, not the harsh 21:1 of pure black on white.
+- A small settings panel: font (Serif, Sans, Legible), text size, line spacing, column width, reading progress, focus mode.
+- The top bar hides while you read down and comes back when you scroll up.
+- Remembers where you stopped in each article.
+- If a site blocks extraction: retry, try simpler extraction, paste the text yourself, or open the original.
+
+Every default value is backed by a source in [docs/RESEARCH.md](docs/RESEARCH.md).
+
+## Keyboard
+
+| Key | Action |
+|---|---|
+| `s` | Reading settings |
+| `t` | Next theme |
+| `+` / `-` | Larger / smaller text |
+| `f` | Focus mode |
+| `j` / `k` | Scroll down / up |
+| `n` | Read another article |
+| `?` | Shortcuts |
+| `Esc` | Close panel, leave focus mode |
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```bash
+pnpm dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open http://localhost:3000.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Checks
 
-## Learn More
+```bash
+pnpm lint && pnpm typecheck && pnpm test
+```
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm exec playwright install chromium && pnpm test:e2e
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`pnpm test:live` runs extraction against real articles (needs network).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Stack
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js 16 (App Router), React 19, Tailwind CSS 4, TypeScript, @mozilla/readability, jsdom, DOMPurify, undici. Vitest and Playwright with axe for tests. Husky runs lint, typecheck and unit tests before each commit.
