@@ -379,7 +379,7 @@
       "dependsOn": [
         "F004"
       ],
-      "state": "verified",
+      "state": "passing",
       "verification": [
         "e2e"
       ],
@@ -443,7 +443,14 @@
           }
         ],
         "taskHash": "f68f0fd92f1b9e3b",
-        "filesHash": "ef93f2a83c81fbbd"
+        "filesHash": "ef93f2a83c81fbbd",
+        "commit": "96f01b9",
+        "doneAt": "2026-09-16T22:38:31Z",
+        "proof": {
+          "1": "e2e/reader.spec.ts: settings change the theme and persist across visits",
+          "2": "e2e/reader.spec.ts: the top bar hides while reading down and returns when scrolling up",
+          "3": "e2e/reader.spec.ts: keyboard: settings, text size, focus mode and shortcuts"
+        }
       },
       "baseCommit": "0f8171d2e8f9f612aa928159776b6e091646b444",
       "failedVerifies": 0

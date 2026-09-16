@@ -50,14 +50,15 @@ Discovery: tier 2 (outside users; reading-comfort choices need evidence), checke
 | D-5 | No accounts, no database; preferences and reading position in localStorage; pasted text never leaves the tab | user | 2026-09-17 | request, V-47 |
 | D-6 | No paragraph-focus/Bionic mode; focus mode only removes chrome | agent default | 2026-09-17 | V-40 |
 | D-7 | Theme changes apply instantly, no color transition | agent default | 2026-09-17 | A transition swapped heading color before the background, making the title unreadable mid-change (seen in testing) |
-| D-8 | Undici fetch with DNS lookup checked at connect time, manual redirects re-validated, 15s timeout, 8MB cap | agent default | 2026-09-17 | R-3; prevents DNS-rebinding between check and connect |
-| D-9 | In-memory 10-minute cache of successful extractions, 50 entries per server process | agent default | 2026-09-17 | Metadata and page render share one fetch; many instances would need a shared cache |
+| D-8 | Undici fetch with DNS lookup checked at connect time, manual redirects re-validated, 15s timeout; IPv6 forms that embed IPv4 blocked | agent default | 2026-09-17 | R-3; prevents DNS-rebinding between check and connect (security review) |
+| D-9 | In-memory 10-minute cache of successful and too-large results, 50 entries per server process | agent default | 2026-09-17 | Metadata and page render share one fetch; repeated slow URLs don't re-run a worker; many instances would need a shared cache |
+| D-10 | Parse in a worker thread: 8s hard limit, at most min(4, cores/2) at once, 1GB heap; input caps 4MB and 75k tags (parse in the request thread; caps only) | agent default | 2026-09-17 | Security review: 45KB of malformed nesting blocked jsdom for 11s+; caps alone can't bound parse time. Caps sized so a page at both caps parses in ~5s under 1GB; large Wikipedia pages (~3MB, 43k tags) still work |
 
 ## Assumptions
 
 | ID | We believe that | Wrong if | Test and threshold | Owner | Status |
 |---|---|---|---|---|---|
-| A-1 | Readability extracts most long-form articles well enough | More than 2 of 10 varied real articles lose body text or images | Live run on 10 URLs (PG, Substack, Wikipedia, tech blogs, news) | agent | holds: 8/8 public pages ok; Medium 403s (bot blocking, handled by R-9) |
+| A-1 | Readability extracts most long-form articles well enough | More than 2 of 10 varied real articles lose body text or images | Live run on varied URLs (PG, Substack, Wikipedia incl. United States/India, tech blogs, Martin Fowler, Cloudflare) | agent | holds: all public pages tried extracted; Medium returns 403 (bot blocking, handled by R-9) |
 | A-2 | A browser-like User-Agent is acceptable and needed for many sites | Sites complain or block it | Watch error codes after launch | user | open |
 | A-3 | 20px/1.6/66 cpl defaults feel right for most readers over long sessions | Users mostly change size or width on first use | Needs real usage; no analytics by design | user | open |
 
