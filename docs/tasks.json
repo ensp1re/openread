@@ -277,7 +277,7 @@
       "dependsOn": [
         "F003"
       ],
-      "state": "verified",
+      "state": "passing",
       "verification": [
         "a11y",
         "e2e"
@@ -290,7 +290,9 @@
         "src/lib/extract/*"
       ],
       "review": true,
-      "notes": [],
+      "notes": [
+        "2026-09-16 review pass by design subagent (2 rounds): Round 1 FAIL (dark selection invisible, focus loss, phone tap-through, <44px targets, empty progress). Round 2 at 87d0c51 PASS with screenshots: 5:1 ring, sheet scrim+shadow, 44px targets, focus return, data-progress, theme-color. Its 3 nice-to-haves applied as specified in 0f8171d."
+      ],
       "blockedReason": null,
       "evidence": {
         "version": 2,
@@ -348,7 +350,20 @@
           }
         ],
         "taskHash": "b77fa67ef9a3da20",
-        "filesHash": "ef93f2a83c81fbbd"
+        "filesHash": "ef93f2a83c81fbbd",
+        "review": {
+          "result": "pass",
+          "by": "design subagent (2 rounds)",
+          "summary": "Round 1 FAIL (dark selection invisible, focus loss, phone tap-through, <44px targets, empty progress). Round 2 at 87d0c51 PASS with screenshots: 5:1 ring, sheet scrim+shadow, 44px targets, focus return, data-progress, theme-color. Its 3 nice-to-haves applied as specified in 0f8171d.",
+          "at": "2026-09-16T22:38:03Z",
+          "filesHash": "ef93f2a83c81fbbd"
+        },
+        "commit": "0f8171d",
+        "doneAt": "2026-09-16T22:38:03Z",
+        "proof": {
+          "1": "e2e/accessibility.spec.ts: axe WCAG 2.2 A/AA clean for light, sepia, soft, dark with settings open (desktop+mobile)",
+          "2": "e2e/reader.spec.ts: the reader never scrolls sideways (mobile project)"
+        }
       },
       "baseCommit": "bf20d330fbb38d6ff73dff8107b2de0f511fa251",
       "failedVerifies": 0
@@ -364,7 +379,7 @@
       "dependsOn": [
         "F004"
       ],
-      "state": "not_started",
+      "state": "verified",
       "verification": [
         "e2e"
       ],
@@ -379,7 +394,59 @@
       "review": false,
       "notes": [],
       "blockedReason": null,
-      "evidence": null
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-16T22:38:03Z",
+        "checks": [
+          {
+            "id": "e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 6.4,
+            "log": "docs/runs/F005-20260916T223803Z-e2e.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.2,
+            "log": "docs/runs/F005-20260916T223803Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.0,
+            "log": "docs/runs/F005-20260916T223803Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 7.2,
+            "log": "docs/runs/F005-20260916T223803Z-unit.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.0,
+            "log": "docs/runs/F005-20260916T223803Z-build.log"
+          },
+          {
+            "id": "keep",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.0,
+            "log": "docs/runs/F005-20260916T223803Z-keep.log"
+          }
+        ],
+        "taskHash": "f68f0fd92f1b9e3b",
+        "filesHash": "ef93f2a83c81fbbd"
+      },
+      "baseCommit": "0f8171d2e8f9f612aa928159776b6e091646b444",
+      "failedVerifies": 0
     }
   ]
 }
