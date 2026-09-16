@@ -86,7 +86,7 @@
       "dependsOn": [
         "F001"
       ],
-      "state": "verified",
+      "state": "passing",
       "verification": [
         "extract-unit",
         "live",
@@ -178,6 +178,13 @@
           "summary": "SSRF (numeric/IPv6-embedded/redirect/DNS) and XSS (mutation payloads, clobbering) held; event-loop blocking fixed via worker + 8s limit + limiter(≤4) + 1024MB cap aligned with 4MB/75k-tag input caps; date/lead-image/srcset/footnote-target fixes confirmed; limiter test fails on old implementation",
           "at": "2026-09-16T22:28:25Z",
           "filesHash": "120944f3ae7cda19"
+        },
+        "commit": "37dd2ca",
+        "doneAt": "2026-09-16T22:28:35Z",
+        "proof": {
+          "1": "src/lib/extract/parse-article.test.ts (sanitization, lazy images, tracking pixels, font footnotes, review fixes)",
+          "2": "src/lib/extract/fetch-page.test.ts (blocked addresses incl. IPv6-embedded, localhost, literal IPs)",
+          "3": "live check: PG essay, Wikipedia, overreacted, ACX, Cloudflare extracted; worker check: scripts/check-parse-worker.mjs"
         }
       },
       "baseCommit": "2a9078abf1c9a114acf42b75024bc681495f8b4a",
@@ -194,7 +201,7 @@
       "dependsOn": [
         "F002"
       ],
-      "state": "not_started",
+      "state": "verified",
       "verification": [
         "e2e"
       ],
@@ -206,7 +213,52 @@
       "review": false,
       "notes": [],
       "blockedReason": null,
-      "evidence": null
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-16T22:28:42Z",
+        "checks": [
+          {
+            "id": "e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 6.4,
+            "log": "docs/runs/F003-20260916T222842Z-e2e.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.2,
+            "log": "docs/runs/F003-20260916T222842Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.9,
+            "log": "docs/runs/F003-20260916T222842Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 7.3,
+            "log": "docs/runs/F003-20260916T222842Z-unit.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.0,
+            "log": "docs/runs/F003-20260916T222842Z-build.log"
+          }
+        ],
+        "taskHash": "67b1b0a326d48a90",
+        "filesHash": "120944f3ae7cda19"
+      },
+      "baseCommit": "37dd2ca32f84d97f92b35207bcac17c805e49872",
+      "failedVerifies": 0
     },
     {
       "id": "F004",
