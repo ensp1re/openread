@@ -10,7 +10,7 @@
         "the Playwright suite starts the built app and passes on desktop and mobile projects"
       ],
       "dependsOn": [],
-      "state": "verified",
+      "state": "passing",
       "verification": [
         "e2e"
       ],
@@ -64,7 +64,13 @@
         "filesHash": "0a0ecd1246db755b",
         "changedDuringRun": [
           "tsconfig.json"
-        ]
+        ],
+        "commit": "2a9078a",
+        "doneAt": "2026-09-16T21:56:30Z",
+        "proof": {
+          "1": "verify F001: lint, typecheck, unit, build checks passed",
+          "2": "e2e check: e2e/reader.spec.ts passed on desktop and mobile projects"
+        }
       },
       "baseCommit": "9bf5e543239185c991132bb10d993a912dc93247",
       "failedVerifies": 0
@@ -80,10 +86,11 @@
       "dependsOn": [
         "F001"
       ],
-      "state": "not_started",
+      "state": "verified",
       "verification": [
         "extract-unit",
-        "live"
+        "live",
+        "worker"
       ],
       "refs": [
         "R-2",
@@ -93,9 +100,88 @@
         "src/app/globals.css"
       ],
       "review": true,
-      "notes": [],
+      "notes": [
+        "2026-09-16 review fail by reviewer: security subagent. high: 8MB page blocks event loop 26s/+1.9GB; medium: leading-date cut real text, title-alt lead image removed, simple mode relative img URLs; low: nested DOM 500, empty cleanup removes id targets/audio, IPv6-embedded IPv4 forms, id collisions, /paste?url unvalidated",
+        "2026-09-16 review fail by security subagent (2nd): H1: parse still blocks event loop on small malformed pages (45KB <a><div> nesting 11s) — needs worker + hard timeout; M1: date inside inline element cut; L1 hero without width removed; L2 srcset without space; L3 <a name> targets removed",
+        "2026-09-16 review fail by security subagent (3rd): M-A unbounded concurrent workers (7GB at 20) and load-induced timeouts cached; M-B 2MB cap rejects large Wikipedia pages; L-A date in cite/code cut; L-B worker exit not handled; L-C worker path untested",
+        "2026-09-16 review fail by security subagent (4th): medium: 768MB worker limit OOMs on pages allowed by 5MB/100k caps and reports no-content; low: limiter microtask queue-jump; stale comment",
+        "2026-09-16 review pass by security subagent (4 rounds): SSRF (numeric/IPv6-embedded/redirect/DNS) and XSS (mutation payloads, clobbering) held; event-loop blocking fixed via worker + 8s limit + limiter(≤4) + 1024MB cap aligned with 4MB/75k-tag input caps; date/lead-image/srcset/footnote-target fixes confirmed; limiter test fails on old implementation"
+      ],
       "blockedReason": null,
-      "evidence": null
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-16T22:27:40Z",
+        "checks": [
+          {
+            "id": "extract-unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 7.2,
+            "log": "docs/runs/F002-20260916T222740Z-extract-unit.log"
+          },
+          {
+            "id": "live",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.1,
+            "log": "docs/runs/F002-20260916T222740Z-live.log"
+          },
+          {
+            "id": "worker",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 11.7,
+            "log": "docs/runs/F002-20260916T222740Z-worker.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.1,
+            "log": "docs/runs/F002-20260916T222740Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.3,
+            "log": "docs/runs/F002-20260916T222740Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 7.4,
+            "log": "docs/runs/F002-20260916T222740Z-unit.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.0,
+            "log": "docs/runs/F002-20260916T222740Z-build.log"
+          },
+          {
+            "id": "keep",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.0,
+            "log": "docs/runs/F002-20260916T222740Z-keep.log"
+          }
+        ],
+        "taskHash": "eb7bd8006afce56a",
+        "filesHash": "120944f3ae7cda19",
+        "review": {
+          "result": "pass",
+          "by": "security subagent (4 rounds)",
+          "summary": "SSRF (numeric/IPv6-embedded/redirect/DNS) and XSS (mutation payloads, clobbering) held; event-loop blocking fixed via worker + 8s limit + limiter(≤4) + 1024MB cap aligned with 4MB/75k-tag input caps; date/lead-image/srcset/footnote-target fixes confirmed; limiter test fails on old implementation",
+          "at": "2026-09-16T22:28:25Z",
+          "filesHash": "120944f3ae7cda19"
+        }
+      },
+      "baseCommit": "2a9078abf1c9a114acf42b75024bc681495f8b4a",
+      "failedVerifies": 0
     },
     {
       "id": "F003",

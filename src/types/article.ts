@@ -21,3 +21,8 @@ export type ExtractErrorCode = (typeof EXTRACT_ERROR)[keyof typeof EXTRACT_ERROR
 export type ExtractResult =
   | { readonly ok: true; readonly article: Article }
   | { readonly ok: false; readonly code: ExtractErrorCode; readonly status?: number };
+
+export interface SrcsetCandidate {
+  readonly url: string;
+  readonly descriptor: string;
+}

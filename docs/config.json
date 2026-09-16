@@ -71,6 +71,15 @@
         "LIVE=1 LIVE_URLS=https://www.paulgraham.com/powerful.html,https://en.wikipedia.org/wiki/Typography,https://overreacted.io/a-complete-guide-to-useeffect/,https://www.astralcodexten.com/p/the-psychopolitics-of-trauma,https://blog.cloudflare.com/details-of-the-cloudflare-outage-on-july-2-2019/ pnpm vitest run src/lib/extract/live.test.ts"
       ],
       "timeoutSeconds": 300
+    },
+    {
+      "id": "worker",
+      "argv": [
+        "sh",
+        "-c",
+        "NEXT_DIST_DIR=.next-check pnpm build >/dev/null && node scripts/check-parse-worker.mjs"
+      ],
+      "timeoutSeconds": 300
     }
   ]
 }

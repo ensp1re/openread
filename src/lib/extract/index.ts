@@ -1,7 +1,7 @@
 import { EXTRACT_ERROR } from "@/constants/extract";
 import type { ExtractResult } from "@/types/article";
 import { fetchPage } from "./fetch-page";
-import { parseArticle } from "./parse-article";
+import { parseInWorker } from "./parse-in-worker";
 
 // ponytail: per-process memory cache; use a shared cache (KV/Redis) if this runs on many instances.
 const cache = new Map<string, { at: number; result: ExtractResult }>();
@@ -16,10 +16,15 @@ export async function extractArticle(url: string, options: { simple?: boolean } 
   const fetched = await fetchPage(url);
   if (!fetched.ok) return { ok: false, code: fetched.code, status: fetched.status };
 
-  const article = parseArticle(fetched.page.html, fetched.page.url, options);
-  const result: ExtractResult = article ? { ok: true, article } : { ok: false, code: EXTRACT_ERROR.NO_CONTENT };
+  const parsed = await parseInWorker({ html: fetched.page.html, url: fetched.page.url, options });
+  const result: ExtractResult = !parsed.ok
+    ? { ok: false, code: EXTRACT_ERROR.TOO_LARGE }
+    : parsed.article
+      ? { ok: true, article: parsed.article }
+      : { ok: false, code: EXTRACT_ERROR.NO_CONTENT };
 
-  if (result.ok) {
+  // Pages that hit the parse time or memory limit are cached too, so repeating a URL can't keep a worker busy.
+  if (result.ok || !parsed.ok) {
     if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value!);
     cache.set(key, { at: Date.now(), result });
   }

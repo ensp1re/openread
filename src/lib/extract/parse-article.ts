@@ -2,7 +2,7 @@ import { Readability } from "@mozilla/readability";
 import createDOMPurify from "dompurify";
 import { JSDOM } from "jsdom";
 import { WORDS_PER_MINUTE } from "@/constants/extract";
-import type { Article } from "@/types/article";
+import type { Article, SrcsetCandidate } from "@/types/article";
 
 const MIN_TEXT_LENGTH = 200;
 
@@ -50,25 +50,85 @@ function simpleExtract(doc: Document): string | null {
 }
 
 const MONTHS = "January|February|March|April|May|June|July|August|September|October|November|December";
-const LEADING_DATE = new RegExp(`^\\s*((?:${MONTHS})(?:\\s+\\d{1,2},)?\\s+\\d{4})\\b`);
+const LEADING_DATE = new RegExp(`^\\s*((?:${MONTHS})(?:\\s+\\d{1,2},)?\\s+\\d{4})\\s*$`);
 
-/** Essays without date metadata often open with a bare "September 2026" line; lift it into the metadata. */
+/** Essays without date metadata often open with a bare "September 2026" line; lift it into the metadata.
+ * Only a text node that is nothing but the date is taken, so "March 2020 was…" stays intact. */
 function takeLeadingDate(body: HTMLElement): string | null {
   const walker = body.ownerDocument.createTreeWalker(body, 4 /* NodeFilter.SHOW_TEXT */);
   let node = walker.nextNode();
   while (node && !node.textContent?.trim()) node = walker.nextNode();
   const match = node && LEADING_DATE.exec(node.textContent!);
   if (!node || !match) return null;
-  node.textContent = node.textContent!.slice(match[0].length);
+
+  // Climb out of non-block wrappers: <strong>March 2020</strong>, <cite>…</cite>.
+  let top: Node = node;
+  while (top.parentElement && top.parentElement !== body && !BLOCK.has(top.parentElement.tagName)) {
+    if (top.parentElement.textContent!.trim() !== match[1]) break;
+    top = top.parentElement;
+  }
+  // The date must stand on its own line: followed by <br>, a block, or nothing. "March 2020 was…" is prose.
+  let next = top.nextSibling;
+  while (next && next.nodeType === 3 && !next.textContent!.trim()) next = next.nextSibling;
+  const nextIsBreak = !next || (next.nodeType === 1 && (next.nodeName === "BR" || BLOCK.has(next.nodeName)));
+  if (!nextIsBreak) return null;
+  // Inside a wrapper that has more text ("<span>March 2020 update</span>") the regex already refused it;
+  // a date that is the whole content of a heading is a section title, not the article date.
+  if (top.parentElement && /^H[1-6]$/.test(top.parentElement.nodeName)) return null;
+
+  if (top === node) node.textContent = "";
+  else (top as Element).remove();
   return match[1];
 }
 
-function sanitize(html: string, baseUrl: string | null, title: string): { html: string; leadingDate: string | null } {
+const BLOCK = new Set(["P", "DIV", "H1", "H2", "H3", "H4", "H5", "H6", "LI", "TD", "TH", "BLOCKQUOTE", "SECTION", "ARTICLE", "HEADER", "FIGURE", "UL", "OL", "PRE", "TABLE", "HR"]);
+
+/**
+ * srcset per the HTML spec: a URL is everything up to whitespace (so it may contain commas);
+ * trailing commas end the candidate, otherwise a descriptor runs up to the next comma.
+ */
+export function parseSrcset(value: string): SrcsetCandidate[] {
+  const out: SrcsetCandidate[] = [];
+  let i = 0;
+  while (i < value.length) {
+    while (i < value.length && /[\s,]/.test(value[i])) i++;
+    const start = i;
+    while (i < value.length && !/\s/.test(value[i])) i++;
+    let url = value.slice(start, i);
+    let descriptor = "";
+    if (url.endsWith(",")) {
+      url = url.replace(/,+$/, "");
+    } else {
+      const d = i;
+      while (i < value.length && value[i] !== ",") i++;
+      descriptor = value.slice(d, i).trim();
+    }
+    if (url) out.push({ url, descriptor });
+  }
+  return out;
+}
+
+const absolute = (value: string, base: string | null) => {
+  try {
+    return new URL(value, base ?? undefined).href;
+  } catch {
+    return null;
+  }
+};
+
+function sanitize(
+  html: string,
+  baseUrl: string | null,
+  title: string,
+  hasDate: boolean,
+): { html: string; leadingDate: string | null } {
   const { window } = new JSDOM("", { url: baseUrl ?? "https://invalid.local/" });
   const purify = createDOMPurify(window);
   const body = purify.sanitize(html, {
     FORBID_TAGS: ["style", "form", "input", "button", "textarea", "select", "iframe", "object", "embed", "dialog"],
     FORBID_ATTR: ["style", "class", "align", "bgcolor", "color", "face", "size", "border"],
+    // Prefixes ids and names with "user-content-" so article ids can't collide with the app's own.
+    SANITIZE_NAMED_PROPS: true,
     RETURN_DOM: true,
   }) as HTMLElement;
   const doc = window.document;
@@ -77,9 +137,16 @@ function sanitize(html: string, baseUrl: string | null, title: string): { html: 
   const firstHeading = body.querySelector("h1, h2");
   if (firstHeading && normalize(firstHeading.textContent ?? "") === normalize(title)) firstHeading.remove();
 
-  // Some sites (paulgraham.com) render the title as an image; the reader already shows it as text.
-  for (const img of body.querySelectorAll("img[alt]")) {
-    if (normalize(img.getAttribute("alt")!) === normalize(title)) img.remove();
+  // Some sites (paulgraham.com) render the title as an image before any text; the reader already shows it.
+  // A lead photo whose alt repeats the title comes after text or is large, so it stays.
+  const titleImage = [...body.querySelectorAll("img[alt]")].find((img) => normalize(img.getAttribute("alt")!) === normalize(title));
+  const tw = Number(titleImage?.getAttribute("width"));
+  const th = Number(titleImage?.getAttribute("height"));
+  if (titleImage && ((tw > 0 && tw <= 400) || (th > 0 && th <= 100))) {
+    const range = doc.createRange();
+    range.setStart(body, 0);
+    range.setEndBefore(titleImage);
+    if (!range.toString().trim()) titleImage.remove();
   }
 
   for (const h1 of body.querySelectorAll("h1")) {
@@ -100,9 +167,33 @@ function sanitize(html: string, baseUrl: string | null, title: string): { html: 
     if (!img.hasAttribute("alt")) img.setAttribute("alt", "");
   }
 
+  // Readability makes URLs absolute, but the simple fallback doesn't; images must not load from our origin.
+  for (const el of body.querySelectorAll("img[src], video[src], video[poster], audio[src], source[src]")) {
+    for (const attr of ["src", "poster"]) {
+      const v = el.getAttribute(attr);
+      if (v === null) continue;
+      const abs = absolute(v, baseUrl);
+      if (abs) el.setAttribute(attr, abs);
+      else el.removeAttribute(attr);
+    }
+  }
+  for (const el of body.querySelectorAll("[srcset]")) {
+    const set = parseSrcset(el.getAttribute("srcset")!)
+      .map(({ url, descriptor }) => {
+        const abs = absolute(url, baseUrl);
+        return abs ? [abs, descriptor].filter(Boolean).join(" ") : null;
+      })
+      .filter(Boolean);
+    if (set.length) el.setAttribute("srcset", set.join(", "));
+    else el.removeAttribute("srcset");
+  }
+
   for (const a of body.querySelectorAll("a[href]")) {
     const href = a.getAttribute("href")!;
-    if (href.startsWith("#")) continue;
+    if (href.startsWith("#")) {
+      if (href.length > 1 && !href.startsWith("#user-content-")) a.setAttribute("href", `#user-content-${href.slice(1)}`);
+      continue;
+    }
     try {
       const abs = new URL(href, baseUrl ?? undefined);
       a.setAttribute("href", abs.href);
@@ -120,10 +211,11 @@ function sanitize(html: string, baseUrl: string | null, title: string): { html: 
     wrap.append(table);
   }
 
-  const leadingDate = takeLeadingDate(body);
+  const leadingDate = hasDate ? null : takeLeadingDate(body);
 
   for (const el of body.querySelectorAll("p, div, span")) {
-    if (!el.textContent?.trim() && !el.querySelector("img, picture, video, svg, math, br, hr")) el.remove();
+    if (el.id || el.hasAttribute("name") || el.querySelector("[id], [name]")) continue; // footnote targets
+    if (!el.textContent?.trim() && !el.querySelector("img, picture, video, audio, svg, math, table, br, hr")) el.remove();
   }
 
   return { html: body.innerHTML, leadingDate };
@@ -159,6 +251,15 @@ function formatDate(value: string | null | undefined): string | null {
 }
 
 export function parseArticle(html: string, url: string | null, options: { simple?: boolean } = {}): Article | null {
+  try {
+    return parse(html, url, options);
+  } catch {
+    // Pathological markup (e.g. nesting deep enough to overflow the stack) is treated as "no article".
+    return null;
+  }
+}
+
+function parse(html: string, url: string | null, options: { simple?: boolean }): Article | null {
   const dom = new JSDOM(html, { url: url ?? undefined });
   const doc = dom.window.document;
   restoreLazyImages(doc);
@@ -175,7 +276,8 @@ export function parseArticle(html: string, url: string | null, options: { simple
   const rawExcerpt = parsed?.excerpt?.replace(/\s+/g, " ").trim() ?? null;
   const split = splitSiteSuffix((parsed?.title || pageTitle).trim(), [parsed?.siteName, hostStem, rawExcerpt]);
   const title = split.title;
-  const { html: body, leadingDate } = sanitize(content, url, title);
+  const metaDate = formatDate(parsed?.publishedTime);
+  const { html: body, leadingDate } = sanitize(content, url, title, metaDate !== null);
   const bodyDoc = new JSDOM(body).window.document;
   const text = bodyDoc.body.textContent ?? "";
   // Code is scanned, not read word by word; leave it out of the reading time.
@@ -196,7 +298,7 @@ export function parseArticle(html: string, url: string | null, options: { simple
     dek,
     byline: cleanByline(parsed?.byline),
     siteName: parsed?.siteName?.trim() || split.site,
-    published: formatDate(parsed?.publishedTime) ?? leadingDate,
+    published: metaDate ?? leadingDate,
     lang: parsed?.lang || doc.documentElement.lang || null,
     dir: parsed?.dir || null,
     content: body,

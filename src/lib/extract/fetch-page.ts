@@ -5,8 +5,10 @@ import {
   EXTRACT_ERROR,
   FETCH_TIMEOUT_MS,
   MAX_HTML_BYTES,
+  MAX_HTML_TAGS,
   MAX_REDIRECTS,
 } from "@/constants/extract";
+import { parsePublicUrl } from "@/lib/url";
 import type { FetchedPage, FetchPageResult } from "@/types/fetch";
 
 // The server fetches URLs typed by anyone, so it must never reach private networks (SSRF).
@@ -17,7 +19,9 @@ for (const [net, prefix] of [
   ["198.18.0.0", 15], ["224.0.0.0", 4], ["240.0.0.0", 4],
 ] as const) blocked.addSubnet(net, prefix, "ipv4");
 for (const [net, prefix] of [
-  ["::", 128], ["::1", 128], ["fc00::", 7], ["fe80::", 10], ["ff00::", 8], ["64:ff9b::", 96],
+  // Also IPv4-compatible (::/96), SIIT, NAT64, 6to4 and Teredo forms that can carry an IPv4 address.
+  ["::", 96], ["::1", 128], ["::ffff:0:0:0", 96], ["fc00::", 7], ["fe80::", 10], ["fec0::", 10], ["ff00::", 8],
+  ["64:ff9b::", 96], ["64:ff9b:1::", 48], ["2002::", 16], ["2001::", 32],
 ] as const) blocked.addSubnet(net, prefix, "ipv6");
 
 export function isBlockedAddress(address: string): boolean {
@@ -45,16 +49,13 @@ const agent = new Agent({
   },
 });
 
-export function parsePublicUrl(input: string): URL | null {
-  let url: URL;
-  try {
-    url = new URL(/^[a-z][a-z0-9+.-]*:/i.test(input.trim()) ? input.trim() : `https://${input.trim()}`);
-  } catch {
-    return null;
+/** jsdom parsing is synchronous; a page with too many elements would block every other request. */
+export function isTooComplex(html: string): boolean {
+  let tags = 0;
+  for (let i = html.indexOf("<"); i !== -1; i = html.indexOf("<", i + 1)) {
+    if (++tags > MAX_HTML_TAGS) return true;
   }
-  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
-  if (url.username || url.password) return null;
-  return url;
+  return false;
 }
 
 function charsetOf(contentType: string, head: Uint8Array): string {
@@ -130,6 +131,7 @@ export async function fetchPage(input: string): Promise<FetchPageResult> {
         offset += c.byteLength;
       }
       const page: FetchedPage = { url: url.href, html: decode(bytes, contentType) };
+      if (isTooComplex(page.html)) return { ok: false, code: EXTRACT_ERROR.TOO_LARGE };
       return { ok: true, page };
     }
     return { ok: false, code: EXTRACT_ERROR.FETCH_FAILED };

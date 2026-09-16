@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
+import { parsePublicUrl } from "@/lib/url";
 import { buildPastedArticle, sanitizePastedHtml, textToHtml } from "@/lib/pasted-article";
 import type { Article } from "@/types/article";
 import { Reader } from "./reader/reader";
 
 export function PasteReader() {
-  const sourceUrl = useSearchParams().get("url");
+  const sourceUrl = parsePublicUrl(useSearchParams().get("url") ?? "")?.href ?? null;
   const [article, setArticle] = useState<Article | null>(null);
   // Rich HTML from the clipboard keeps headings, lists and links; plain text is the fallback.
   const pastedHtml = useRef<string | null>(null);

@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { extractArticle } from ".";
+import { fetchPage } from "./fetch-page";
+import { parseArticle } from "./parse-article";
+
+// The worker in parse-in-worker.ts needs the Next bundler, so this calls fetch and parse directly.
+async function extractArticle(url: string) {
+  const f = await fetchPage(url);
+  if (!f.ok) return f;
+  const article = parseArticle(f.page.html, f.page.url);
+  return article ? { ok: true as const, article } : { ok: false as const, code: "no-content" };
+}
 
 // Network test against real articles. Run with: LIVE=1 pnpm vitest run src/lib/extract/live.test.ts
 const URLS = (process.env.LIVE_URLS ?? "https://www.paulgraham.com/powerful.html").split(",");

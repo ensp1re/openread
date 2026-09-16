@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EXTRACT_ERROR } from "@/constants/extract";
-import { fetchPage, isBlockedAddress, parsePublicUrl } from "./fetch-page";
+import { parsePublicUrl } from "@/lib/url";
+import { fetchPage, isBlockedAddress } from "./fetch-page";
 
 describe("isBlockedAddress", () => {
   it.each(["127.0.0.1", "10.1.2.3", "172.16.0.1", "192.168.1.1", "169.254.169.254", "0.0.0.0", "::1", "fd00::1", "fe80::1", "::ffff:127.0.0.1", "not-an-ip"])(
@@ -27,5 +28,19 @@ describe("fetchPage", () => {
   });
   it("refuses hostnames that resolve to private addresses", async () => {
     expect(await fetchPage("http://localhost:3000/")).toMatchObject({ ok: false, code: EXTRACT_ERROR.BLOCKED_HOST });
+  });
+});
+
+describe("isBlockedAddress: IPv6 forms embedding IPv4", () => {
+  it.each(["::7f00:1", "::ffff:0:7f00:1", "64:ff9b:1::7f00:1", "2002:7f00:1::", "fec0::1"])("blocks %s", (ip) =>
+    expect(isBlockedAddress(ip)).toBe(true),
+  );
+});
+
+describe("isTooComplex", () => {
+  it("rejects pages with more than 100k tags", async () => {
+    const { isTooComplex } = await import("./fetch-page");
+    expect(isTooComplex("<p>x</p>".repeat(60_000))).toBe(true);
+    expect(isTooComplex("<p>x</p>".repeat(1000))).toBe(false);
   });
 });
