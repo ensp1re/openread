@@ -1,13 +1,76 @@
 {
   "schemaVersion": 2,
   "checks": [
-    { "id": "lint", "argv": ["pnpm", "lint"], "required": true },
-    { "id": "typecheck", "argv": ["pnpm", "typecheck"], "required": true },
-    { "id": "unit", "argv": ["pnpm", "test"], "required": true },
-    { "id": "build", "argv": ["pnpm", "build"], "required": true, "wrapup": true, "timeoutSeconds": 600 },
-    { "id": "e2e", "argv": ["pnpm", "exec", "playwright", "test", "e2e/reader.spec.ts"], "timeoutSeconds": 900 },
-    { "id": "a11y", "argv": ["pnpm", "exec", "playwright", "test", "e2e/accessibility.spec.ts"], "timeoutSeconds": 900 },
-    { "id": "extract-unit", "argv": ["pnpm", "vitest", "run", "src/lib/extract"] },
-    { "id": "live", "argv": ["sh", "-c", "LIVE=1 LIVE_URLS=https://www.paulgraham.com/powerful.html,https://en.wikipedia.org/wiki/Typography,https://overreacted.io/a-complete-guide-to-useeffect/,https://www.astralcodexten.com/p/the-psychopolitics-of-trauma,https://blog.cloudflare.com/details-of-the-cloudflare-outage-on-july-2-2019/ pnpm vitest run src/lib/extract/live.test.ts"], "timeoutSeconds": 300 }
+    {
+      "id": "lint",
+      "argv": [
+        "pnpm",
+        "lint"
+      ],
+      "required": true
+    },
+    {
+      "id": "typecheck",
+      "argv": [
+        "pnpm",
+        "typecheck"
+      ],
+      "required": true
+    },
+    {
+      "id": "unit",
+      "argv": [
+        "pnpm",
+        "test"
+      ],
+      "required": true
+    },
+    {
+      "id": "build",
+      "argv": [
+        "sh",
+        "-c",
+        "NEXT_DIST_DIR=.next-check pnpm build"
+      ],
+      "required": true,
+      "wrapup": true,
+      "timeoutSeconds": 600
+    },
+    {
+      "id": "e2e",
+      "argv": [
+        "sh",
+        "-c",
+        "NEXT_DIST_DIR=.next-check pnpm exec playwright test e2e/reader.spec.ts"
+      ],
+      "timeoutSeconds": 900
+    },
+    {
+      "id": "a11y",
+      "argv": [
+        "sh",
+        "-c",
+        "NEXT_DIST_DIR=.next-check pnpm exec playwright test e2e/accessibility.spec.ts"
+      ],
+      "timeoutSeconds": 900
+    },
+    {
+      "id": "extract-unit",
+      "argv": [
+        "pnpm",
+        "vitest",
+        "run",
+        "src/lib/extract"
+      ]
+    },
+    {
+      "id": "live",
+      "argv": [
+        "sh",
+        "-c",
+        "LIVE=1 LIVE_URLS=https://www.paulgraham.com/powerful.html,https://en.wikipedia.org/wiki/Typography,https://overreacted.io/a-complete-guide-to-useeffect/,https://www.astralcodexten.com/p/the-psychopolitics-of-trauma,https://blog.cloudflare.com/details-of-the-cloudflare-outage-on-july-2-2019/ pnpm vitest run src/lib/extract/live.test.ts"
+      ],
+      "timeoutSeconds": 300
+    }
   ]
 }
