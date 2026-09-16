@@ -20,7 +20,7 @@ export function SettingsPanel({ preferences: p, onChange, onClose, focusMode, on
     panel?.querySelector<HTMLInputElement>("input:checked")?.focus();
     const onPointer = (e: PointerEvent) => {
       const target = e.target as Element;
-      if (panel && !panel.contains(target) && !target.closest("[data-settings-toggle]")) onClose();
+      if (panel && !panel.contains(target) && !target.closest("[data-settings-toggle], .settings-scrim")) onClose(false);
     };
     document.addEventListener("pointerdown", onPointer);
     return () => document.removeEventListener("pointerdown", onPointer);
@@ -33,6 +33,11 @@ export function SettingsPanel({ preferences: p, onChange, onClose, focusMode, on
       role="dialog"
       aria-label="Reading settings"
       className="settings-panel"
+      onBlur={(e) => {
+        // Tabbing out of the panel closes it, so it doesn't keep covering the text.
+        const to = e.relatedTarget as Element | null;
+        if (to && !e.currentTarget.contains(to) && !to.closest("[data-settings-toggle]")) onClose(false);
+      }}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           e.stopPropagation();

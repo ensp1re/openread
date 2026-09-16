@@ -49,12 +49,20 @@ export function applyPreferences(p: Preferences) {
   el.dataset.size = p.size;
   el.dataset.leading = p.leading;
   el.dataset.width = p.width;
+  el.dataset.progress = String(p.progress);
+  syncThemeColor();
+}
+
+/** Keeps the mobile browser bar the same color as the page. */
+export function syncThemeColor() {
+  const bg = getComputedStyle(document.body).backgroundColor;
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", bg));
 }
 
 /** Runs before first paint (inline in <head>) so stored settings never flash the defaults. */
 export const PREFERENCES_BOOT_SCRIPT = `try{var p=JSON.parse(localStorage.getItem(${JSON.stringify(
   PREFERENCES_STORAGE_KEY,
-)})||"{}"),e=document.documentElement;["theme","font","size","leading","width"].forEach(function(k){if(typeof p[k]==="string")e.dataset[k]=p[k]})}catch(_){}`;
+)})||"{}"),e=document.documentElement;["theme","font","size","leading","width"].forEach(function(k){if(typeof p[k]==="string")e.dataset[k]=p[k]});if(p.progress===false)e.dataset.progress="false"}catch(_){}`;
 
 // A tiny store so every component reads the same preferences via useSyncExternalStore.
 let current: Preferences | null = null;

@@ -69,6 +69,19 @@ test("keyboard: settings, text size, focus mode and shortcuts", async ({ page, i
   await expect(page.getByRole("dialog", { name: "Reading settings" })).toBeHidden();
   await expect(page.getByRole("button", { name: "Reading settings" })).toBeFocused();
 
+  // Closing with the same key also returns focus.
+  await page.keyboard.press("s");
+  await page.keyboard.press("s");
+  await expect(page.getByRole("dialog", { name: "Reading settings" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Reading settings" })).toBeFocused();
+
+  // Shortcuts opened from the panel give focus back to the settings button when closed.
+  await page.keyboard.press("s");
+  await page.getByRole("button", { name: "Keyboard shortcuts" }).click();
+  await page.getByRole("button", { name: "Close" }).click();
+  await expect(page.getByRole("button", { name: "Reading settings" })).toBeFocused();
+  await expect(page.getByRole("dialog", { name: "Keyboard shortcuts" })).toBeHidden();
+
   await page.keyboard.press("f");
   await expect(page.locator(".reader")).toHaveAttribute("data-focus", "true");
   await expect(page.locator(".progress-track")).toHaveCount(0);
@@ -77,6 +90,36 @@ test("keyboard: settings, text size, focus mode and shortcuts", async ({ page, i
 
   await page.keyboard.press("?");
   await expect(page.getByRole("dialog", { name: "Keyboard shortcuts" })).toBeVisible();
+});
+
+test("the progress line is filled again after leaving focus mode", async ({ page, isMobile }) => {
+  test.skip(isMobile, "uses the keyboard");
+  await openPasted(page);
+  await page.evaluate(() => window.scrollTo(0, 1500));
+  await page.keyboard.press("f");
+  await page.keyboard.press("Escape");
+  const scale = await page.locator(".progress-fill").evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).a);
+  expect(scale).toBeGreaterThan(0.1);
+});
+
+test("on phones, tapping outside the settings sheet only closes it", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "phone layout");
+  await openPasted(page);
+  await page.getByRole("button", { name: "Reading settings" }).click();
+  const y = await page.evaluate(() => window.scrollY);
+  const sheetTop = (await page.getByRole("dialog", { name: "Reading settings" }).boundingBox())!.y;
+  await page.mouse.click(180, sheetTop / 2);
+  await expect(page.getByRole("dialog", { name: "Reading settings" })).toBeHidden();
+  expect(await page.evaluate(() => window.scrollY)).toBe(y);
+});
+
+test("controls are at least 44px tall", async ({ page }) => {
+  await openPasted(page);
+  await page.getByRole("button", { name: "Reading settings" }).click();
+  for (const name of ["Reset", "Reading settings"]) {
+    const box = await page.getByRole("button", { name }).boundingBox();
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+  }
 });
 
 test("the top bar hides while reading down and returns when scrolling up", async ({ page }) => {

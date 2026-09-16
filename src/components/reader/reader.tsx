@@ -9,7 +9,7 @@ import {
   BAR_REVEAL_SCROLL_UP_PX,
   MAX_SAVED_POSITIONS,
 } from "@/constants/reader";
-import { preferencesStore } from "@/lib/preferences";
+import { preferencesStore, syncThemeColor } from "@/lib/preferences";
 import type { Preferences } from "@/types/preferences";
 import type { ReaderProps } from "@/types/reader";
 import { SettingsPanel } from "./settings-panel";
@@ -75,10 +75,11 @@ export function Reader({ article, onExit }: ReaderProps) {
   const source = article.siteName ?? host;
 
   const setPrefs = useCallback((next: Preferences) => preferencesStore.set(next), []);
-  const closeSettings = useCallback(() => {
+  const closeSettings = useCallback((returnFocus = true) => {
     setSettingsOpen(false);
-    settingsButtonRef.current?.focus({ preventScroll: true });
+    if (returnFocus) settingsButtonRef.current?.focus({ preventScroll: true });
   }, []);
+  const closeShortcuts = useCallback(() => setShortcutsOpen(false), []);
   const exit = useCallback(() => (onExit ? onExit() : router.push("/")), [onExit, router]);
 
   const focusModeRef = useRef(focusMode);
@@ -90,6 +91,8 @@ export function Reader({ article, onExit }: ReaderProps) {
     setAnnouncement(on ? "Focus mode on. Press Escape to leave." : "Focus mode off");
     setSettingsOpen(false);
   }, []);
+
+  useEffect(syncThemeColor, []);
 
   // Restore where the reader left off in this article.
   useEffect(() => {
@@ -151,7 +154,8 @@ export function Reader({ article, onExit }: ReaderProps) {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, [article.url, article.readingMinutes]);
+    // Re-run when the progress line is re-created, so it doesn't start empty.
+  }, [article.url, article.readingMinutes, prefs.progress, focusMode]);
 
   // Moving the pointer to the top edge brings the bar back without scrolling.
   useEffect(() => {
@@ -165,13 +169,17 @@ export function Reader({ article, onExit }: ReaderProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || isTyping(e.target)) return;
-      if (shortcutsOpen) return;
+      // Read the DOM, not state: a key pressed right after the dialog closes must not see a stale value.
+      if (document.querySelector("dialog[open]")) return;
       const p = preferencesStore.get();
       const lineStep = articleRef.current ? parseFloat(getComputedStyle(articleRef.current).lineHeight) * 3 : 96;
       switch (e.key) {
         case "s":
-          setSettingsOpen((o) => !o);
-          setBarHidden(false);
+          if (settingsOpen) closeSettings();
+          else {
+            setSettingsOpen(true);
+            setBarHidden(false);
+          }
           break;
         case "t":
           setPrefs({ ...p, theme: nextTheme(p) });
@@ -211,7 +219,7 @@ export function Reader({ article, onExit }: ReaderProps) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [closeSettings, exit, focusMode, settingsOpen, setPrefs, shortcutsOpen, toggleFocus]);
+  }, [closeSettings, exit, focusMode, settingsOpen, setPrefs, toggleFocus]);
 
   const barVisible = settingsOpen || !barHidden;
 
@@ -266,6 +274,7 @@ export function Reader({ article, onExit }: ReaderProps) {
             </button>
           </div>
         </div>
+        {settingsOpen && <div className="settings-scrim" aria-hidden="true" onClick={() => closeSettings()} />}
         {settingsOpen && (
           <SettingsPanel
             preferences={prefs}
@@ -274,6 +283,8 @@ export function Reader({ article, onExit }: ReaderProps) {
             focusMode={focusMode}
             onToggleFocus={toggleFocus}
             onShowShortcuts={() => {
+              // Focus the toggle first, so closing the dialog returns focus there instead of to <body>.
+              settingsButtonRef.current?.focus({ preventScroll: true });
               setSettingsOpen(false);
               setShortcutsOpen(true);
             }}
@@ -321,7 +332,7 @@ export function Reader({ article, onExit }: ReaderProps) {
         </footer>
       </main>
 
-      {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
+      {shortcutsOpen && <ShortcutsDialog onClose={closeShortcuts} />}
       <p className="sr-only" aria-live="polite">
         {announcement}
       </p>

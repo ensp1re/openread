@@ -7,13 +7,18 @@ import type { ShortcutsDialogProps } from "@/types/reader";
 export function ShortcutsDialog({ onClose }: ShortcutsDialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
 
+  // A native listener: React's onClose prop did not fire when <form method="dialog"> closed the dialog.
   // No close() in cleanup: removing the element already closes it, and a close event would re-trigger onClose.
   useEffect(() => {
-    if (ref.current && !ref.current.open) ref.current.showModal();
-  }, []);
+    const dialog = ref.current;
+    if (!dialog) return;
+    dialog.addEventListener("close", onClose);
+    if (!dialog.open) dialog.showModal();
+    return () => dialog.removeEventListener("close", onClose);
+  }, [onClose]);
 
   return (
-    <dialog ref={ref} className="shortcuts-dialog" aria-labelledby="shortcuts-title" onClose={onClose} onClick={(e) => e.target === ref.current && onClose()}>
+    <dialog ref={ref} className="shortcuts-dialog" aria-labelledby="shortcuts-title" onClick={(e) => e.target === ref.current && onClose()}>
       <h2 id="shortcuts-title">Keyboard shortcuts</h2>
       <dl>
         {SHORTCUTS.map((s) => (

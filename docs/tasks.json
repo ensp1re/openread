@@ -201,7 +201,7 @@
       "dependsOn": [
         "F002"
       ],
-      "state": "verified",
+      "state": "passing",
       "verification": [
         "e2e"
       ],
@@ -255,7 +255,14 @@
           }
         ],
         "taskHash": "67b1b0a326d48a90",
-        "filesHash": "120944f3ae7cda19"
+        "filesHash": "120944f3ae7cda19",
+        "commit": "bf20d33",
+        "doneAt": "2026-09-16T22:29:23Z",
+        "proof": {
+          "1": "e2e/reader.spec.ts: home page submits the link to the reader; live PG test passed with LIVE=1",
+          "2": "e2e/reader.spec.ts: home page submits (blocked 127.0.0.1 shows error with paste option)",
+          "3": "e2e/reader.spec.ts: pasted text opens in the reader with reading time"
+        }
       },
       "baseCommit": "37dd2ca32f84d97f92b35207bcac17c805e49872",
       "failedVerifies": 0
@@ -270,7 +277,7 @@
       "dependsOn": [
         "F003"
       ],
-      "state": "not_started",
+      "state": "verified",
       "verification": [
         "a11y",
         "e2e"
@@ -285,7 +292,66 @@
       "review": true,
       "notes": [],
       "blockedReason": null,
-      "evidence": null
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-16T22:33:23Z",
+        "checks": [
+          {
+            "id": "a11y",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 6.7,
+            "log": "docs/runs/F004-20260916T223323Z-a11y.log"
+          },
+          {
+            "id": "e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 6.3,
+            "log": "docs/runs/F004-20260916T223323Z-e2e.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.1,
+            "log": "docs/runs/F004-20260916T223323Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.1,
+            "log": "docs/runs/F004-20260916T223323Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 7.1,
+            "log": "docs/runs/F004-20260916T223323Z-unit.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.0,
+            "log": "docs/runs/F004-20260916T223323Z-build.log"
+          },
+          {
+            "id": "keep",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.0,
+            "log": "docs/runs/F004-20260916T223323Z-keep.log"
+          }
+        ],
+        "taskHash": "b77fa67ef9a3da20",
+        "filesHash": "568d5851f55c5085"
+      },
+      "baseCommit": "bf20d330fbb38d6ff73dff8107b2de0f511fa251",
+      "failedVerifies": 0
     },
     {
       "id": "F005",

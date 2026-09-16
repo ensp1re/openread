@@ -10,7 +10,8 @@ export interface ReaderProps {
 export interface SettingsPanelProps {
   readonly preferences: Preferences;
   readonly onChange: (next: Preferences) => void;
-  readonly onClose: () => void;
+  /** returnFocus is false when focus already moved somewhere the user chose. */
+  readonly onClose: (returnFocus?: boolean) => void;
   readonly focusMode: boolean;
   readonly onToggleFocus: () => void;
   readonly onShowShortcuts: () => void;
