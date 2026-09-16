@@ -68,7 +68,7 @@
       "argv": [
         "sh",
         "-c",
-        "LIVE=1 LIVE_URLS=https://www.paulgraham.com/powerful.html,https://en.wikipedia.org/wiki/Typography,https://overreacted.io/a-complete-guide-to-useeffect/,https://www.astralcodexten.com/p/the-psychopolitics-of-trauma,https://blog.cloudflare.com/details-of-the-cloudflare-outage-on-july-2-2019/ pnpm vitest run src/lib/extract/live.test.ts"
+        "LIVE=1 LIVE_URLS=https://www.paulgraham.com/powerful.html,https://www.paulgraham.com/brandage.html,https://www.paulgraham.com/worked.html,https://en.wikipedia.org/wiki/Typography,https://overreacted.io/a-complete-guide-to-useeffect/,https://www.astralcodexten.com/p/the-psychopolitics-of-trauma,https://blog.cloudflare.com/details-of-the-cloudflare-outage-on-july-2-2019/ pnpm vitest run src/lib/extract/live.test.ts"
       ],
       "timeoutSeconds": 300
     },

@@ -23,6 +23,8 @@ describe.skipIf(!process.env.LIVE)("live extraction", () => {
         console.log(JSON.stringify(meta), content.length, (content.match(/<(h2|h3|img|blockquote|pre|figure|figcaption|table|ul|ol)\b/g) ?? []).join(""));
       }
       expect(r.ok).toBe(true);
+      // "�" means the page's encoding was guessed wrong (see decodeHtml).
+      if (r.ok) expect(`${r.article.title} ${r.article.content}`).not.toContain("\uFFFD");
     });
   }
 });
