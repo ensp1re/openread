@@ -39,6 +39,7 @@ export const libraryDb = {
   put: <T extends { id: string }>(store: LibraryStoreName, value: T) => run<IDBValidKey>(store, "readwrite", (s) => s.put(value)),
   delete: (store: LibraryStoreName, id: string) => run<undefined>(store, "readwrite", (s) => s.delete(id)),
   keys: (store: LibraryStoreName) => run<IDBValidKey[]>(store, "readonly", (s) => s.getAllKeys()),
+  all: <T>(store: LibraryStoreName) => run<T[]>(store, "readonly", (s) => s.getAll()),
 };
 
 /** Asks the browser not to evict saved items under storage pressure (granted silently or by heuristics). */

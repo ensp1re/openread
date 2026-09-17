@@ -69,3 +69,54 @@ test("live: a read article is listed with its site", async ({ page }) => {
   await page.goto("/");
   await expect(recent(page).getByRole("listitem").filter({ hasText: "Making Startups Powerful" })).toContainText("paulgraham.com");
 });
+
+test("keyboard focus follows remove and Undo", async ({ page, isMobile }) => {
+  test.skip(isMobile, "keyboard");
+  await paste(page, "Focus one");
+  await paste(page, "Focus two");
+  await page.goto("/");
+  await recent(page).getByRole("button", { name: "Remove Focus two from Recent" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(recent(page).getByRole("button", { name: "Undo" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(recent(page).getByRole("link", { name: /Focus two/ })).toBeFocused();
+});
+
+test("a finished item still shows Finished after reopening it", async ({ page }) => {
+  await paste(page, "Read to the end");
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.waitForTimeout(700);
+  await page.goto("/");
+  const row = recent(page).getByRole("listitem").filter({ hasText: "Read to the end" });
+  await expect(row).toContainText("Finished");
+  await row.getByRole("link").click();
+  await expect(page.getByRole("heading", { level: 1, name: "Read to the end" })).toBeVisible();
+  await page.waitForTimeout(700);
+  await page.goto("/");
+  await expect(recent(page).getByRole("listitem").filter({ hasText: "Read to the end" })).toContainText("Finished");
+});
+
+test("pasting still works when the browser blocks storage", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "indexedDB", { get: () => ({ open: () => { throw new Error("blocked"); } }) });
+  });
+  await page.goto("/paste");
+  await page.getByLabel("Title (optional)").fill("Unsaved");
+  await page.getByLabel("Article text").fill(ESSAY);
+  await page.getByRole("button", { name: "Read" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Unsaved" })).toBeVisible();
+  await expect(page.getByText("isn’t saved", { exact: false })).toBeVisible();
+});
+
+test("removing in one tab is safe while another tab opens the home page during Undo", async ({ context, page }) => {
+  await paste(page, "Two tabs");
+  const fileUrl = page.url();
+  await page.goto("/");
+  await recent(page).getByRole("button", { name: "Remove Two tabs from Recent" }).click();
+  const other = await context.newPage();
+  await other.goto("/");
+  await other.waitForTimeout(500);
+  await recent(page).getByRole("button", { name: "Undo" }).click();
+  await page.goto(fileUrl);
+  await expect(page.getByRole("heading", { level: 1, name: "Two tabs" })).toBeVisible();
+});

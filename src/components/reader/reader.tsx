@@ -122,7 +122,8 @@ export function Reader({ article, recent }: ReaderProps) {
       }
       lastY = y;
 
-      if (positionKey) {
+      // Only real scrolling saves: the first measurement at the top would overwrite "Finished" with 0.
+      if (positionKey && scrolled) {
         clearTimeout(saveTimer);
         const key = positionKey;
         saveTimer = setTimeout(() => {
@@ -132,7 +133,9 @@ export function Reader({ article, recent }: ReaderProps) {
       }
     };
 
+    let scrolled = false;
     const onScroll = () => {
+      scrolled = true;
       frame ||= requestAnimationFrame(update);
     };
     update();

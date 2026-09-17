@@ -476,65 +476,67 @@
         "src/lib/extract/*"
       ],
       "review": true,
-      "notes": [],
+      "notes": [
+        "2026-09-17 review fail by design/correctness subagent: high: stale in-memory recent list in reader tabs overwrites other tabs' entries, then home GC deletes their text; medium: focus lost after remove/undo; paste unusable when IndexedDB blocked; other-tab GC deletes text during Undo window; reopening finished item resets progress to 0; low: localStorage.clear not observed, undo timer doesn't pause on focus, closing tab during undo leaves positions"
+      ],
       "blockedReason": null,
       "evidence": {
         "version": 2,
         "status": "passed",
-        "at": "2026-09-17T17:49:04Z",
+        "at": "2026-09-17T17:56:15Z",
         "checks": [
           {
             "id": "recent-e2e",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 12.7,
-            "log": "docs/runs/F006-20260917T174904Z-recent-e2e.log"
+            "seconds": 12.3,
+            "log": "docs/runs/F006-20260917T175615Z-recent-e2e.log"
           },
           {
             "id": "library-unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 1.1,
-            "log": "docs/runs/F006-20260917T174904Z-library-unit.log"
+            "seconds": 0.7,
+            "log": "docs/runs/F006-20260917T175615Z-library-unit.log"
           },
           {
             "id": "lint",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 2.0,
-            "log": "docs/runs/F006-20260917T174904Z-lint.log"
+            "seconds": 1.9,
+            "log": "docs/runs/F006-20260917T175615Z-lint.log"
           },
           {
             "id": "typecheck",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 1.9,
-            "log": "docs/runs/F006-20260917T174904Z-typecheck.log"
+            "seconds": 1.0,
+            "log": "docs/runs/F006-20260917T175615Z-typecheck.log"
           },
           {
             "id": "unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 11.2,
-            "log": "docs/runs/F006-20260917T174904Z-unit.log"
+            "seconds": 10.6,
+            "log": "docs/runs/F006-20260917T175615Z-unit.log"
           },
           {
             "id": "build",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 3.8,
-            "log": "docs/runs/F006-20260917T174904Z-build.log"
+            "seconds": 3.1,
+            "log": "docs/runs/F006-20260917T175615Z-build.log"
           },
           {
             "id": "keep",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.0,
-            "log": "docs/runs/F006-20260917T174904Z-keep.log"
+            "log": "docs/runs/F006-20260917T175615Z-keep.log"
           }
         ],
         "taskHash": "75aa29cb69293877",
-        "filesHash": "50cce31b15720c80"
+        "filesHash": "de0c51d07df4b756"
       },
       "baseCommit": "2a75d1ecfc8e4f036a211be8e9d8fdad74aa8400",
       "failedVerifies": 0

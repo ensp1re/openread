@@ -29,13 +29,18 @@ function commit(next: readonly RecentItem[]) {
   listeners.forEach((l) => l());
 }
 
-/** Recent links, files and pasted text, newest first. Same store shape as preferencesStore. */
+/**
+ * Recent links, files and pasted text, newest first. Same store shape as preferencesStore.
+ * Every write starts from what is stored now, not from this tab's copy: a reader tab has no
+ * subscriber, never sees storage events, and would otherwise overwrite other tabs' changes.
+ */
 export const recentStore = {
   subscribe(listener: () => void) {
     listeners.add(listener);
     // Another tab changed the list.
     const onStorage = (e: StorageEvent) => {
-      if (e.key !== RECENT_STORAGE_KEY) return;
+      // key is null when another tab called localStorage.clear().
+      if (e.key !== null && e.key !== RECENT_STORAGE_KEY) return;
       current = load();
       listener();
     };
@@ -53,24 +58,24 @@ export const recentStore = {
 
   /** Adds the item, or moves it to the top keeping its progress. */
   open(seed: RecentSeed) {
-    const list = recentStore.get();
+    const list = load();
     const prev = list.find((i) => i.id === seed.id);
     commit([{ ...seed, progress: prev?.progress ?? 0, openedAt: Date.now() }, ...list.filter((i) => i.id !== seed.id)]);
   },
   setProgress(id: string, progress: number) {
-    const list = recentStore.get();
+    const list = load();
     const prev = list.find((i) => i.id === id);
     const rounded = Math.round(Math.min(1, Math.max(0, progress)) * 1000) / 1000;
     if (!prev || prev.progress === rounded) return;
     commit(list.map((i) => (i.id === id ? { ...i, progress: rounded } : i)));
   },
   remove(id: string) {
-    commit(recentStore.get().filter((i) => i.id !== id));
+    commit(load().filter((i) => i.id !== id));
   },
   /** Puts back items removed moments ago (Undo). */
   restore(items: readonly RecentItem[]) {
     const ids = new Set(items.map((i) => i.id));
-    commit([...items, ...recentStore.get().filter((i) => !ids.has(i.id))]);
+    commit([...items, ...load().filter((i) => !ids.has(i.id))]);
   },
   clear() {
     commit(EMPTY);

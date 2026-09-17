@@ -4,6 +4,9 @@ export const RECENT_STORAGE_KEY = "openread:recent";
 export const MAX_RECENT_ITEMS = 50;
 export const RECENT_VISIBLE_ITEMS = 8;
 export const RECENT_UNDO_MS = 5000;
+export const RECENT_PENDING_KEY = "openread:recent-pending";
+/** Stored content this new is never cleaned up: another tab may be about to list it. */
+export const STORED_ITEM_GRACE_MS = 60_000;
 
 export const LIBRARY_DB_NAME = "openread";
 export const LIBRARY_DB_VERSION = 1;

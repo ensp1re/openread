@@ -4,16 +4,30 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 import { itemHref, saveText } from "@/lib/library/items";
-import { sanitizePastedHtml, textToHtml } from "@/lib/pasted-article";
+import { buildPastedArticle, sanitizePastedHtml, textToHtml } from "@/lib/pasted-article";
+import type { Article } from "@/types/article";
+import { Reader } from "./reader/reader";
 import { parsePublicUrl } from "@/lib/url";
 
 export function PasteReader() {
   const sourceUrl = parsePublicUrl(useSearchParams().get("url") ?? "")?.href ?? null;
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  // When the browser blocks storage, the text is still read from memory, just not kept in Recent.
+  const [unsaved, setUnsaved] = useState<Article | null>(null);
   // Rich HTML from the clipboard keeps headings, lists and links; plain text is the fallback.
   const pastedHtml = useRef<string | null>(null);
+
+  if (unsaved) {
+    return (
+      <>
+        <p className="storage-note" role="status">
+          This browser blocks saving, so this text isn&rsquo;t saved in Recent. It stays open until you leave the page.
+        </p>
+        <Reader article={unsaved} />
+      </>
+    );
+  }
 
   return (
     <main className="notice">
@@ -38,8 +52,8 @@ export function PasteReader() {
               const id = await saveText(String(data.get("title") ?? "").trim(), html, sourceUrl);
               router.push(itemHref(id));
             } catch {
-              setSaving(false);
-              setError("This browser didn't allow saving the text (private mode or storage turned off).");
+              setUnsaved(buildPastedArticle(String(data.get("title") ?? ""), html, sourceUrl));
+              window.scrollTo(0, 0);
             }
           }}
         >
@@ -60,11 +74,6 @@ export function PasteReader() {
             }}
           />
           <p className="paste-hint">The text is kept in this browser so you can reopen it from Recent. Nothing is uploaded.</p>
-          {error && (
-            <p className="paste-hint" role="alert">
-              {error}
-            </p>
-          )}
           <button type="submit" disabled={saving}>
             {saving ? "Opening…" : "Read"}
           </button>

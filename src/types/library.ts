@@ -40,3 +40,15 @@ export interface StoredText {
 }
 
 export type StoredItem = StoredText;
+
+/** Recent id → time its Undo window ends. Shared across tabs through localStorage. */
+export type PendingRemovals = Readonly<Record<string, number>>;
+
+export interface CleanupInput {
+  readonly records: readonly { readonly id: string; readonly addedAt: number }[];
+  /** Stored ids (without the `file:` prefix) that Recent still lists. */
+  readonly recentIds: readonly string[];
+  /** Stored id → Undo deadline. */
+  readonly pending: PendingRemovals;
+  readonly now: number;
+}

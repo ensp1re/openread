@@ -55,6 +55,29 @@ describe("recentStore", () => {
     expect(store.get()).toHaveLength(0);
   });
 
+  it("writes on top of the latest stored list, not an old in-memory copy (another tab added an item)", async () => {
+    const store = await freshStore();
+    store.open(seed(1));
+    expect(store.get()).toHaveLength(1);
+    // Another tab adds an item; this tab has no subscriber, so it never saw a storage event.
+    const other = JSON.parse(localStorage.getItem(RECENT_STORAGE_KEY)!);
+    localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify([{ ...seed(2), progress: 0, openedAt: Date.now() + 1 }, ...other]));
+    store.setProgress(seed(1).id, 0.5);
+    expect(JSON.parse(localStorage.getItem(RECENT_STORAGE_KEY)!).map((i: { title: string }) => i.title).sort()).toEqual(["T1", "T2"]);
+    store.remove(seed(1).id);
+    expect(JSON.parse(localStorage.getItem(RECENT_STORAGE_KEY)!).map((i: { title: string }) => i.title)).toEqual(["T2"]);
+  });
+
+  it("notices localStorage.clear() in another tab", async () => {
+    const store = await freshStore();
+    store.open(seed(1));
+    const off = store.subscribe(() => {});
+    localStorage.clear();
+    window.dispatchEvent(new StorageEvent("storage", { key: null }));
+    expect(store.get()).toEqual([]);
+    off();
+  });
+
   it("ignores corrupt storage and picks up changes from another tab", async () => {
     localStorage.setItem(RECENT_STORAGE_KEY, "{not json");
     const store = await freshStore();

@@ -1090,6 +1090,16 @@ kbd {
   text-decoration-color: currentColor;
 }
 
+.storage-note {
+  position: relative;
+  z-index: 25;
+  margin: calc(var(--bar-height) + 0.5rem) auto -2rem;
+  max-width: 34rem;
+  padding: 0 var(--gutter);
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
 /* Recent: plain rows, like a book's list of contents, not cards */
 
 .recent {
