@@ -1,0 +1,6 @@
+Notes on quiet reading
+
+A first paragraph that says something plain, and then keeps going for long
+enough that the reader has a real line to work with when the file opens.
+
+A second paragraph, after a blank line, so the parser has two of them.

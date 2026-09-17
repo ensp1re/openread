@@ -1,4 +1,5 @@
 import type { LIBRARY_STORE, RECENT_KIND } from "@/constants/library";
+import type { StoredFileRecord } from "@/types/document";
 
 type ValueOf<T> = T[keyof T];
 
@@ -39,7 +40,7 @@ export interface StoredText {
   readonly addedAt: number;
 }
 
-export type StoredItem = StoredText;
+export type StoredItem = StoredText | StoredFileRecord;
 
 /** Recent id → time its Undo window ends. Shared across tabs through localStorage. */
 export type PendingRemovals = Readonly<Record<string, number>>;

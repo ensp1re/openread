@@ -1090,6 +1090,62 @@ kbd {
   text-decoration-color: currentColor;
 }
 
+/* Opening a file from this device */
+
+.file-opener {
+  margin-top: 1.5rem;
+}
+
+.file-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  font-size: 0.9375rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.file-button:hover {
+  border-color: var(--muted);
+}
+
+input:focus-visible + .file-button {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.file-hint,
+.file-error {
+  margin-top: 0.6rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.file-error {
+  color: var(--text);
+}
+
+.drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  font-size: 1.125rem;
+  color: var(--muted);
+}
+
+.drop-overlay span {
+  padding: 1.25rem 2rem;
+  border: 1px dashed var(--rule-strong);
+  border-radius: 12px;
+}
+
 .storage-note {
   position: relative;
   z-index: 25;

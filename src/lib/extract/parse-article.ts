@@ -2,6 +2,8 @@ import { Readability } from "@mozilla/readability";
 import createDOMPurify from "dompurify";
 import { JSDOM } from "jsdom";
 import { WORDS_PER_MINUTE } from "@/constants/extract";
+import { sanitizeToDom } from "@/lib/sanitize";
+import { splitSiteSuffix } from "@/lib/title";
 import type { Article, SrcsetCandidate } from "@/types/article";
 
 const MIN_TEXT_LENGTH = 200;
@@ -124,13 +126,8 @@ function sanitize(
 ): { html: string; leadingDate: string | null } {
   const { window } = new JSDOM("", { url: baseUrl ?? "https://invalid.local/" });
   const purify = createDOMPurify(window);
-  const body = purify.sanitize(html, {
-    FORBID_TAGS: ["style", "form", "input", "button", "textarea", "select", "iframe", "object", "embed", "dialog"],
-    FORBID_ATTR: ["style", "class", "align", "bgcolor", "color", "face", "size", "border"],
-    // Prefixes ids and names with "user-content-" so article ids can't collide with the app's own.
-    SANITIZE_NAMED_PROPS: true,
-    RETURN_DOM: true,
-  }) as HTMLElement;
+  // Shared with files and pasted text; ids are prefixed so a document can't collide with the app's own.
+  const body = sanitizeToDom(purify, html);
   const doc = window.document;
 
   // Readability usually drops a heading that repeats the title; catch the ones it misses.
@@ -221,18 +218,6 @@ function sanitize(
   }
 
   return { html: body.innerHTML, leadingDate };
-}
-
-/** "Line length | Butterick's Practical Typography" → title "Line length", site "Butterick's Practical Typography". */
-function splitSiteSuffix(title: string, candidates: (string | null | undefined)[]): { title: string; site: string | null } {
-  const m = /^(.{8,}?)\s+[|—–·-]\s+([^|—–·]{2,60})$/.exec(title);
-  if (!m) return { title, site: null };
-  const suffix = normalize(m[2]);
-  const hit = candidates.some((c) => {
-    const n = c ? normalize(c) : "";
-    return n.length > 1 && (n === suffix || n.includes(suffix) || suffix.includes(n));
-  });
-  return hit ? { title: m[1].trim(), site: m[2].trim() } : { title, site: null };
 }
 
 function wordCount(text: string): number {

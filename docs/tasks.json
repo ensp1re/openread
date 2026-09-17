@@ -464,7 +464,7 @@
         "Given pasted text, when read and the home page opened again, then it is listed and reopens"
       ],
       "dependsOn": [],
-      "state": "verified",
+      "state": "passing",
       "verification": [
         "recent-e2e",
         "library-unit"
@@ -478,7 +478,8 @@
       "review": true,
       "notes": [
         "2026-09-17 review fail by design/correctness subagent: high: stale in-memory recent list in reader tabs overwrites other tabs' entries, then home GC deletes their text; medium: focus lost after remove/undo; paste unusable when IndexedDB blocked; other-tab GC deletes text during Undo window; reopening finished item resets progress to 0; low: localStorage.clear not observed, undo timer doesn't pause on focus, closing tab during undo leaves positions",
-        "2026-09-17 review fail by design/correctness subagent (2nd): medium: pausing Undo (hover/focus) does not extend the shared pending deadline, so another tab's cleanup finalizes the removal and deletes an older item's text and position; low: restore() clears undo.timer not pending.current.timer; restored row outside the visible 8 loses focus"
+        "2026-09-17 review fail by design/correctness subagent (2nd): medium: pausing Undo (hover/focus) does not extend the shared pending deadline, so another tab's cleanup finalizes the removal and deletes an older item's text and position; low: restore() clears undo.timer not pending.current.timer; restored row outside the visible 8 loses focus",
+        "2026-09-17 review pass by design/correctness subagent (3 rounds): Round 1 FAIL (stale cross-tab list losing data, focus loss, paste blocked without IndexedDB, cleanup during Undo, finished item reset). Round 2 FAIL (paused Undo did not extend the shared deadline). Round 3 PASS at 83bec19: repros re-run, tab-closed-while-paused finalizes correctly after 60s, no leftovers."
       ],
       "blockedReason": null,
       "evidence": {
@@ -537,7 +538,21 @@
           }
         ],
         "taskHash": "75aa29cb69293877",
-        "filesHash": "03c757dc7b7d331c"
+        "filesHash": "03c757dc7b7d331c",
+        "review": {
+          "result": "pass",
+          "by": "design/correctness subagent (3 rounds)",
+          "summary": "Round 1 FAIL (stale cross-tab list losing data, focus loss, paste blocked without IndexedDB, cleanup during Undo, finished item reset). Round 2 FAIL (paused Undo did not extend the shared deadline). Round 3 PASS at 83bec19: repros re-run, tab-closed-while-paused finalizes correctly after 60s, no leftovers.",
+          "at": "2026-09-17T18:11:25Z",
+          "filesHash": "03c757dc7b7d331c"
+        },
+        "commit": "83bec19",
+        "doneAt": "2026-09-17T18:11:25Z",
+        "proof": {
+          "1": "e2e/recent.spec.ts: pasted text is listed in Recent and reopens at the saved position; live: a read article is listed with its site",
+          "2": "e2e/recent.spec.ts: remove with Undo, and Clear all; keyboard focus follows remove and Undo; hovering Undo keeps an older item restorable",
+          "3": "e2e/recent.spec.ts: the list survives closing the tab; a finished item still shows Finished after reopening"
+        }
       },
       "baseCommit": "2a75d1ecfc8e4f036a211be8e9d8fdad74aa8400",
       "failedVerifies": 0
@@ -554,7 +569,7 @@
       "dependsOn": [
         "F006"
       ],
-      "state": "not_started",
+      "state": "verified",
       "verification": [
         "files-e2e",
         "files-unit",
@@ -565,12 +580,81 @@
         "R-16"
       ],
       "keep": [
-        "src/lib/extract/*"
+        "src/lib/extract/fetch-page.ts",
+        "the article extraction behaviour (extract-unit and live checks)"
       ],
       "review": true,
-      "notes": [],
+      "notes": [
+        "2026-09-17 Sanitizer config and the title-suffix helper moved out of src/lib/extract/parse-article.ts into src/lib/sanitize.ts and src/lib/title.ts, so files, pasted text and articles share one config. Extraction behaviour unchanged: extract unit + live checks still pass. Keep list narrowed to the fetching path."
+      ],
       "blockedReason": null,
-      "evidence": null
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-17T18:21:02Z",
+        "checks": [
+          {
+            "id": "files-e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 12.3,
+            "log": "docs/runs/F007-20260917T182102Z-files-e2e.log"
+          },
+          {
+            "id": "files-unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.7,
+            "log": "docs/runs/F007-20260917T182102Z-files-unit.log"
+          },
+          {
+            "id": "library-unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.6,
+            "log": "docs/runs/F007-20260917T182102Z-library-unit.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 2.0,
+            "log": "docs/runs/F007-20260917T182102Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.0,
+            "log": "docs/runs/F007-20260917T182102Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 10.7,
+            "log": "docs/runs/F007-20260917T182102Z-unit.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.1,
+            "log": "docs/runs/F007-20260917T182102Z-build.log"
+          },
+          {
+            "id": "keep",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.0,
+            "log": "docs/runs/F007-20260917T182102Z-keep.log"
+          }
+        ],
+        "taskHash": "3e14de4dd7c7290a",
+        "filesHash": "bbf6a7dac28cfc1e"
+      },
+      "baseCommit": "83bec19a61fa634b83a726111530b910636a5ac0",
+      "failedVerifies": 0
     },
     {
       "id": "F008",

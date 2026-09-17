@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head><title>Saved page — Example</title><script>alert("head")</script></head>
+<body>
+  <nav><a href="/">Home</a><a href="/about">About</a></nav>
+  <article>
+    <h1>Saved page</h1>
+    <p>The first paragraph of a saved web page, long enough that Readability treats it as the real content of the page rather than chrome around it.</p>
+    <p onclick="alert(1)">A second paragraph with an <a href="javascript:alert(1)">unsafe link</a> and a <a href="https://example.com/x">safe one</a>.</p>
+    <p>A third paragraph so there is clearly enough text here for the extractor to keep this block and drop the navigation.</p>
+    <iframe src="https://example.com"></iframe>
+    <img src="https://example.com/a.png" onerror="alert(1)" width="600" height="400" alt="A picture">
+  </article>
+  <footer>Footer junk</footer>
+</body>
+</html>

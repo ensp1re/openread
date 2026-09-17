@@ -2,14 +2,35 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { FILE_ERROR_MESSAGE } from "@/constants/errors";
+import { PARSER_VERSION } from "@/constants/files";
 import { RECENT_KIND } from "@/constants/library";
+import { fileSourceLabel } from "@/lib/files/open";
+import { loadParsed, saveParsed } from "@/lib/library/files";
 import { loadStoredItem, storedRecentId, itemHref } from "@/lib/library/items";
 import { buildPastedArticle } from "@/lib/pasted-article";
-import type { StoredItem } from "@/types/library";
+import type { FileErrorCode, ReadableDoc, StoredFileRecord } from "@/types/document";
+import type { StoredText } from "@/types/library";
 import type { StoredItemViewProps } from "@/types/pages";
 import { Reader } from "./reader/reader";
 
-type LoadState = { status: "loading" } | { status: "missing" } | { status: "ready"; item: StoredItem };
+type LoadState =
+  | { status: "loading" }
+  | { status: "missing" }
+  | { status: "failed"; code: FileErrorCode }
+  | { status: "ready"; item: StoredText }
+  | { status: "file"; record: StoredFileRecord; doc: ReadableDoc };
+
+/** Reuses the cached parse; a new parser version re-reads the file. */
+async function openStoredFile(record: StoredFileRecord): Promise<LoadState> {
+  const cached = await loadParsed(record.id).catch(() => undefined);
+  if (cached?.version === PARSER_VERSION) return { status: "file", record, doc: cached.doc };
+  const { parseFile } = await import("@/lib/files/parse");
+  const parsed = await parseFile(record.blob, { name: record.name, format: record.format, size: record.size });
+  if (!parsed.ok) return { status: "failed", code: parsed.code };
+  await saveParsed(record.id, PARSER_VERSION, parsed.doc).catch(() => {});
+  return { status: "file", record, doc: parsed.doc };
+}
 
 /** Opens something saved in this browser: pasted text now, files later. */
 export function StoredItemView({ id }: StoredItemViewProps) {
@@ -18,7 +39,11 @@ export function StoredItemView({ id }: StoredItemViewProps) {
   useEffect(() => {
     let alive = true;
     loadStoredItem(id)
-      .then((item) => alive && setState(item ? { status: "ready", item } : { status: "missing" }))
+      .then(async (item) => {
+        if (!item) return { status: "missing" } as LoadState;
+        return item.kind === "file" ? await openStoredFile(item) : ({ status: "ready", item } as LoadState);
+      })
+      .then((next) => alive && setState(next))
       .catch(() => alive && setState({ status: "missing" }));
     return () => {
       alive = false;
@@ -26,7 +51,9 @@ export function StoredItemView({ id }: StoredItemViewProps) {
   }, [id]);
 
   useEffect(() => {
-    if (state.status === "ready") document.title = `${state.item.title || "Untitled"} · OpenRead`;
+    const title =
+      state.status === "ready" ? state.item.title : state.status === "file" ? (state.doc.kind === "article" ? state.doc.article.title : state.doc.book.title) : null;
+    if (title !== null) document.title = `${title || "Untitled"} · OpenRead`;
   }, [state]);
 
   if (state.status === "loading") {
@@ -55,6 +82,43 @@ export function StoredItemView({ id }: StoredItemViewProps) {
           </ul>
         </div>
       </main>
+    );
+  }
+
+  if (state.status === "failed") {
+    return (
+      <main className="notice">
+        <div className="notice-inner">
+          <Link href="/" className="notice-home">
+            OpenRead
+          </Link>
+          <h1>Couldn&rsquo;t open this file.</h1>
+          <p className="notice-detail">{FILE_ERROR_MESSAGE[state.code]}</p>
+          <ul className="notice-actions">
+            <li>
+              <Link href="/">Open something else</Link>
+            </li>
+          </ul>
+        </div>
+      </main>
+    );
+  }
+
+  if (state.status === "file") {
+    const { record, doc } = state;
+    const article = doc.kind === "article" ? doc.article : null;
+    if (!article) return null;
+    return (
+      <Reader
+        article={article}
+        recent={{
+          id: storedRecentId(record.id),
+          kind: RECENT_KIND.FILE,
+          title: article.title,
+          source: fileSourceLabel(record),
+          href: itemHref(record.id),
+        }}
+      />
     );
   }
 
