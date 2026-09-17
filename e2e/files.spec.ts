@@ -127,7 +127,8 @@ test("opens a Word document", async ({ page }) => {
 
 test("opens a PDF as reflowed text, with the original pages one click away", async ({ page }) => {
   await open(page, "two-column.pdf");
-  await expect(page.getByRole("heading", { level: 1, name: /two-column/i })).toBeVisible();
+  // The PDF has no title of its own, so the largest line on page one is used.
+  await expect(page.getByRole("heading", { level: 1, name: "Reading on Screens" })).toBeVisible();
   await expect(page.locator(".prose")).toContainText("misunderstood, as this sentence shows");
   await expect(page.locator(".prose")).not.toContainText("A Journal of Typography");
 
