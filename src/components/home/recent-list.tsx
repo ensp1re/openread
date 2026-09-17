@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { RECENT_UNDO_MS, RECENT_VISIBLE_ITEMS } from "@/constants/library";
+import { RECENT_UNDO_MS, RECENT_UNDO_PAUSE_MS, RECENT_VISIBLE_ITEMS } from "@/constants/library";
 import { collectUnusedItems, forgetItem, setPending } from "@/lib/library/items";
 import { recentStore } from "@/lib/library/recent";
 import type { RecentItem } from "@/types/library";
@@ -36,6 +36,7 @@ export function RecentList() {
   const pending = useRef<UndoState | null>(null);
   const undoButton = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLOListElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
   // Focus moved there by code must not pause the Undo window; only a person hovering or tabbing to it does.
   const movingFocus = useRef(false);
 
@@ -68,16 +69,28 @@ export function RecentList() {
     setUndo(startTimer({ items: removed, message, timer: undefined as unknown as ReturnType<typeof setTimeout> }));
   };
 
+  // Pausing must also hold off other tabs' cleanup, or they would finalize a removal still on screen.
+  const pauseTimer = () => {
+    const state = pending.current;
+    if (!state) return;
+    clearTimeout(state.timer);
+    setPending(state.items.map((i) => i.id), Date.now() + RECENT_UNDO_PAUSE_MS);
+  };
+
   const restore = () => {
     if (!undo) return;
-    clearTimeout(undo.timer);
+    clearTimeout(pending.current?.timer);
     recentStore.restore(undo.items);
     setPending(undo.items.map((i) => i.id), null);
     pending.current = null;
     setUndo(null);
     const id = undo.items[0]?.id;
     // The store update re-renders synchronously; focus the restored row on the next frame.
-    requestAnimationFrame(() => listRef.current?.querySelector<HTMLAnchorElement>(`a[data-id="${CSS.escape(id ?? "")}"]`)?.focus());
+    requestAnimationFrame(() => {
+      const row = listRef.current?.querySelector<HTMLAnchorElement>(`a[data-id="${CSS.escape(id ?? "")}"]`);
+      // A restored row past the visible 8 isn't rendered; fall back to the section heading.
+      (row ?? headingRef.current)?.focus();
+    });
   };
 
   // The removed row's button is gone; keep keyboard focus on what comes next.
@@ -101,7 +114,9 @@ export function RecentList() {
   return (
     <section className="recent" aria-labelledby="recent-title">
       <div className="recent-head">
-        <h2 id="recent-title">Recent</h2>
+        <h2 id="recent-title" ref={headingRef} tabIndex={-1}>
+          Recent
+        </h2>
         {items.length > 0 && (
           <button type="button" className="text-button" onClick={() => removeWithUndo(items, "Cleared Recent.")}>
             Clear all
@@ -119,8 +134,8 @@ export function RecentList() {
               className="text-button"
               onClick={restore}
               // The Undo window waits while someone is on the button.
-              onFocus={() => !movingFocus.current && clearTimeout(pending.current?.timer)}
-              onMouseEnter={() => clearTimeout(pending.current?.timer)}
+              onFocus={() => !movingFocus.current && pauseTimer()}
+              onMouseEnter={pauseTimer}
               onBlur={() => pending.current && (pending.current = startTimer(pending.current))}
               onMouseLeave={() => pending.current && (pending.current = startTimer(pending.current))}
             >

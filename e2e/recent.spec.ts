@@ -120,3 +120,35 @@ test("removing in one tab is safe while another tab opens the home page during U
   await page.goto(fileUrl);
   await expect(page.getByRole("heading", { level: 1, name: "Two tabs" })).toBeVisible();
 });
+
+test("hovering Undo keeps an older item restorable, even if another tab cleans up", async ({ context, page }) => {
+  await paste(page, "Older item");
+  const fileUrl = page.url();
+  await page.goto("/");
+  // Age the stored record past the 60s grace, as a normal reading session would.
+  await page.evaluate(async () => {
+    const db: IDBDatabase = await new Promise((r) => {
+      const req = indexedDB.open("openread", 1);
+      req.onsuccess = () => r(req.result);
+    });
+    await new Promise((r) => {
+      const store = db.transaction("items", "readwrite").objectStore("items");
+      store.getAll().onsuccess = (e) => {
+        for (const rec of (e.target as IDBRequest).result) store.put({ ...rec, addedAt: Date.now() - 600_000 });
+        r(null);
+      };
+    });
+  });
+
+  await recent(page).getByRole("button", { name: "Remove Older item from Recent" }).click();
+  await recent(page).getByRole("button", { name: "Undo" }).hover();
+  await page.waitForTimeout(7000); // longer than the Undo window, which the hover pauses
+
+  const other = await context.newPage();
+  await other.goto("/");
+  await other.waitForTimeout(500);
+
+  await recent(page).getByRole("button", { name: "Undo" }).click();
+  await page.goto(fileUrl);
+  await expect(page.getByRole("heading", { level: 1, name: "Older item" })).toBeVisible();
+});

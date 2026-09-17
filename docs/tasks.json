@@ -477,66 +477,67 @@
       ],
       "review": true,
       "notes": [
-        "2026-09-17 review fail by design/correctness subagent: high: stale in-memory recent list in reader tabs overwrites other tabs' entries, then home GC deletes their text; medium: focus lost after remove/undo; paste unusable when IndexedDB blocked; other-tab GC deletes text during Undo window; reopening finished item resets progress to 0; low: localStorage.clear not observed, undo timer doesn't pause on focus, closing tab during undo leaves positions"
+        "2026-09-17 review fail by design/correctness subagent: high: stale in-memory recent list in reader tabs overwrites other tabs' entries, then home GC deletes their text; medium: focus lost after remove/undo; paste unusable when IndexedDB blocked; other-tab GC deletes text during Undo window; reopening finished item resets progress to 0; low: localStorage.clear not observed, undo timer doesn't pause on focus, closing tab during undo leaves positions",
+        "2026-09-17 review fail by design/correctness subagent (2nd): medium: pausing Undo (hover/focus) does not extend the shared pending deadline, so another tab's cleanup finalizes the removal and deletes an older item's text and position; low: restore() clears undo.timer not pending.current.timer; restored row outside the visible 8 loses focus"
       ],
       "blockedReason": null,
       "evidence": {
         "version": 2,
         "status": "passed",
-        "at": "2026-09-17T17:56:15Z",
+        "at": "2026-09-17T18:02:47Z",
         "checks": [
           {
             "id": "recent-e2e",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 12.3,
-            "log": "docs/runs/F006-20260917T175615Z-recent-e2e.log"
+            "seconds": 15.3,
+            "log": "docs/runs/F006-20260917T180247Z-recent-e2e.log"
           },
           {
             "id": "library-unit",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.7,
-            "log": "docs/runs/F006-20260917T175615Z-library-unit.log"
+            "log": "docs/runs/F006-20260917T180247Z-library-unit.log"
           },
           {
             "id": "lint",
             "outcome": "passed",
             "exit": 0,
             "seconds": 1.9,
-            "log": "docs/runs/F006-20260917T175615Z-lint.log"
+            "log": "docs/runs/F006-20260917T180247Z-lint.log"
           },
           {
             "id": "typecheck",
             "outcome": "passed",
             "exit": 0,
             "seconds": 1.0,
-            "log": "docs/runs/F006-20260917T175615Z-typecheck.log"
+            "log": "docs/runs/F006-20260917T180247Z-typecheck.log"
           },
           {
             "id": "unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 10.6,
-            "log": "docs/runs/F006-20260917T175615Z-unit.log"
+            "seconds": 10.9,
+            "log": "docs/runs/F006-20260917T180247Z-unit.log"
           },
           {
             "id": "build",
             "outcome": "passed",
             "exit": 0,
             "seconds": 3.1,
-            "log": "docs/runs/F006-20260917T175615Z-build.log"
+            "log": "docs/runs/F006-20260917T180247Z-build.log"
           },
           {
             "id": "keep",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.0,
-            "log": "docs/runs/F006-20260917T175615Z-keep.log"
+            "log": "docs/runs/F006-20260917T180247Z-keep.log"
           }
         ],
         "taskHash": "75aa29cb69293877",
-        "filesHash": "de0c51d07df4b756"
+        "filesHash": "03c757dc7b7d331c"
       },
       "baseCommit": "2a75d1ecfc8e4f036a211be8e9d8fdad74aa8400",
       "failedVerifies": 0
