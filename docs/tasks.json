@@ -592,60 +592,60 @@
       "evidence": {
         "version": 2,
         "status": "passed",
-        "at": "2026-09-17T18:37:03Z",
+        "at": "2026-09-17T18:42:17Z",
         "checks": [
           {
             "id": "files-e2e",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 13.5,
-            "log": "docs/runs/F007-20260917T183703Z-files-e2e.log"
+            "seconds": 13.4,
+            "log": "docs/runs/F007-20260917T184217Z-files-e2e.log"
           },
           {
             "id": "files-unit",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.8,
-            "log": "docs/runs/F007-20260917T183703Z-files-unit.log"
+            "log": "docs/runs/F007-20260917T184217Z-files-unit.log"
           },
           {
             "id": "library-unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 0.7,
-            "log": "docs/runs/F007-20260917T183703Z-library-unit.log"
+            "seconds": 0.6,
+            "log": "docs/runs/F007-20260917T184217Z-library-unit.log"
           },
           {
             "id": "lint",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 1.5,
-            "log": "docs/runs/F007-20260917T183703Z-lint.log"
+            "seconds": 2.0,
+            "log": "docs/runs/F007-20260917T184217Z-lint.log"
           },
           {
             "id": "typecheck",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 1.1,
-            "log": "docs/runs/F007-20260917T183703Z-typecheck.log"
+            "seconds": 1.2,
+            "log": "docs/runs/F007-20260917T184217Z-typecheck.log"
           },
           {
             "id": "unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 11.6,
-            "log": "docs/runs/F007-20260917T183703Z-unit.log"
+            "seconds": 10.8,
+            "log": "docs/runs/F007-20260917T184217Z-unit.log"
           },
           {
             "id": "build",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 3.3,
-            "log": "docs/runs/F007-20260917T183703Z-build.log"
+            "seconds": 3.8,
+            "log": "docs/runs/F007-20260917T184217Z-build.log"
           }
         ],
         "taskHash": "3e14de4dd7c7290a",
-        "filesHash": "be2b2ec01b18f668"
+        "filesHash": "e7ca69121b7eaafe"
       },
       "baseCommit": "83bec19a61fa634b83a726111530b910636a5ac0",
       "failedVerifies": 0

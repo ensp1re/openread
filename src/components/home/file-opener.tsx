@@ -47,7 +47,10 @@ export function FileOpener() {
       dragDepth.current = 0;
       setDropping(false);
       const files = e.dataTransfer?.files;
-      if (files && files.length > 1) setError("Drop one file at a time.");
+      if (files && files.length > 1) {
+        setError("Drop one file at a time.");
+        return;
+      }
       void handle(files?.[0]);
     };
     // A drag cancelled with Escape fires dragend, not dragleave; without this the overlay would stick.

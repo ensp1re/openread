@@ -98,3 +98,17 @@ describe("review fixes", () => {
     expect(content).toMatch(/href="https:\/\/example\.com\/x"[^>]*rel="noopener noreferrer"/);
   });
 });
+
+describe("media URLs", () => {
+  it("keeps only http(s) and inline images in src and srcset", async () => {
+    const body = `<p>${"Enough words in this paragraph for the extractor to treat it as the article body. ".repeat(4)}</p>
+      <p><img src="https://ok.example/a.png" srcset="https://ok.example/a.png 1x, javascript:alert(1) 2x, data:text/html;base64,PHNjcmlwdD4= 3x, data:image/gif;base64,R0lGOD 4x" width="600" height="400" alt=""></p>
+      ${"<p>More body text, so this block is clearly the content of the page.</p>".repeat(3)}`;
+    const r = await parseFile(new Blob([`<!doctype html><html><body><article>${body}</article></body></html>`]) as unknown as globalThis.Blob, source("m.html", FILE_FORMAT.HTML));
+    if (!r.ok || r.doc.kind !== "article") throw new Error("parse failed");
+    expect(r.doc.article.content).not.toContain("javascript:");
+    expect(r.doc.article.content).not.toContain("data:text/html");
+    expect(r.doc.article.content).toContain("data:image/gif");
+    expect(r.doc.article.content).toContain("https://ok.example/a.png 1x");
+  });
+});

@@ -14,12 +14,20 @@ export function hardenUrls(body: HTMLElement, baseUrl: string | null) {
     }
   };
 
+  /** Media may only load over http(s) or an inline image: a srcset candidate can carry any scheme. */
+  const mediaUrl = (value: string) => {
+    const href = absolute(value);
+    if (!href) return null;
+    if (/^https?:$/.test(new URL(href).protocol)) return href;
+    return href.startsWith("data:image/") ? href : null;
+  };
+
   // Readability makes URLs absolute, but the simple fallback doesn't; images must not load from our origin.
   for (const el of body.querySelectorAll("img[src], video[src], video[poster], audio[src], source[src]")) {
     for (const attr of ["src", "poster"]) {
       const v = el.getAttribute(attr);
       if (v === null) continue;
-      const abs = absolute(v);
+      const abs = mediaUrl(v);
       if (abs) el.setAttribute(attr, abs);
       else el.removeAttribute(attr);
     }
@@ -27,7 +35,7 @@ export function hardenUrls(body: HTMLElement, baseUrl: string | null) {
   for (const el of body.querySelectorAll("[srcset]")) {
     const set = parseSrcset(el.getAttribute("srcset")!)
       .map(({ url, descriptor }) => {
-        const abs = absolute(url);
+        const abs = mediaUrl(url);
         return abs ? [abs, descriptor].filter(Boolean).join(" ") : null;
       })
       .filter(Boolean);
