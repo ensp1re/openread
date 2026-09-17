@@ -23,6 +23,14 @@ export interface RecentItem extends RecentSeed {
   readonly openedAt: number;
 }
 
+/** What localStorage holds: fraction, chapter, per-chapter fractions, and when it was written. */
+export interface StoredPosition {
+  readonly f: number;
+  readonly c: number;
+  readonly m?: Readonly<Record<number, number>>;
+  readonly at: number;
+}
+
 export interface SavedPosition {
   /** Scroll fraction within the article or chapter. */
   readonly fraction: number;

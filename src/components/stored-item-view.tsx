@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { BookReader } from "@/components/book/book-reader";
-import { readPosition, savePosition } from "@/lib/library/position";
+import { readPosition, saveChapter } from "@/lib/library/position";
 import { FILE_ERROR_MESSAGE } from "@/constants/errors";
 import { PARSER_VERSION } from "@/constants/files";
 import { RECENT_KIND } from "@/constants/library";
@@ -138,7 +138,7 @@ export function StoredItemView({ id }: StoredItemViewProps) {
         recent={recent}
         showTitlePage={chapterParam === null && !saved}
         onStart={() => {
-          savePosition(recent.id, { fraction: 0, chapter: 0 });
+          saveChapter(recent.id, 0);
           setChapter(0);
         }}
       />

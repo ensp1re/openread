@@ -41,8 +41,17 @@ function promoteTextHeadings(body: HTMLElement) {
  * sections (h2). Headings of the other level become contents entries inside their chapter, so a book
  * with parts keeps them and a book titled by an h1 doesn't list its own title as chapter one.
  */
-export function splitChapters(body: HTMLElement): { chapters: Chapter[]; toc: TocEntry[]; anchors: Record<string, number> } {
-  const doc = body.ownerDocument;
+export function splitChapters(root: HTMLElement): { chapters: Chapter[]; toc: TocEntry[]; anchors: Record<string, number> } {
+  const doc = root.ownerDocument;
+  // Parsers wrap their output in a div; headings are only found as direct children, so step inside.
+  let body = root;
+  while (
+    body.children.length === 1 &&
+    /^(DIV|SECTION|ARTICLE|MAIN)$/.test(body.children[0].tagName) &&
+    (body.textContent ?? "").trim() === (body.children[0].textContent ?? "").trim()
+  ) {
+    body = body.children[0] as HTMLElement;
+  }
   if (body.querySelectorAll("h1, h2").length === 0) promoteTextHeadings(body);
 
   const h1s = [...body.querySelectorAll("h1")].filter((h) => headingText(h));

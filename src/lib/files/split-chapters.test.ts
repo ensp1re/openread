@@ -86,3 +86,27 @@ describe("splitChapters: heading levels", () => {
     expect(anchors[section.anchor!]).toBe(1);
   });
 });
+
+describe("wrapped documents and parts", () => {
+  it("finds the chapters inside a parser's wrapper element", () => {
+    const { chapters } = splitChapters(dom("<div><h2>One</h2><p>a</p><h2>Two</h2><p>b</p></div>"));
+    expect(chapters.map((c) => c.title)).toEqual(["One", "Two"]);
+  });
+
+  it("opens a long HTML document with headings as a book", async () => {
+    const body = Array.from({ length: 12 }, (_, i) => `<h2>Chapter ${i + 1}</h2>${`<p>${"word ".repeat(120)}</p>`.repeat(10)}`).join("");
+    const html = `<!doctype html><html><head><title>An HTML Book</title></head><body><article>${body}</article></body></html>`;
+    const r = await parseFile(new Blob([html]) as unknown as globalThis.Blob, { name: "book.html", format: FILE_FORMAT.HTML, size: 5000 });
+    if (!r.ok || r.doc.kind !== "book") throw new Error(`expected a book, got ${r.ok ? r.doc.kind : r.code}`);
+    expect(r.doc.book.chapters).toHaveLength(12);
+  });
+
+  it("keeps a Markdown book's parts as chapters instead of taking one as the title", async () => {
+    const part = (n: number) => `# Part ${n}\n\n${`${"word ".repeat(150)}\n\n`.repeat(30)}`;
+    const md = `${part(1)}${part(2)}${part(3)}`;
+    const r = await parseFile(new Blob([md]) as unknown as globalThis.Blob, { name: "parts.md", format: FILE_FORMAT.MARKDOWN, size: 5000 });
+    if (!r.ok || r.doc.kind !== "book") throw new Error("expected a book");
+    expect(r.doc.book.title).toBe("parts.md");
+    expect(r.doc.book.chapters.map((c) => c.title)).toEqual(["Part 1", "Part 2", "Part 3"]);
+  });
+});

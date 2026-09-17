@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ReaderChrome } from "@/components/reader/reader-chrome";
 import { useReaderChrome } from "@/components/reader/use-reader-chrome";
-import { savePosition } from "@/lib/library/position";
+import { saveChapter } from "@/lib/library/position";
 import type { BookReaderProps } from "@/types/reader";
 import { ContentsDrawer } from "./contents-drawer";
 
@@ -25,11 +25,13 @@ export function BookReader({ book, chapter, onChapterChange, recent, showTitlePa
   );
 
   const go = useCallback(
-    (next: number) => {
+    (next: number, anchor?: string) => {
       if (next < 0 || next >= book.chapters.length) return;
       setContentsOpen(false);
       onChapterChange(next);
       window.scrollTo(0, 0);
+      // A contents entry for a section inside the chapter: scroll to it once the chapter is on screen.
+      if (anchor) requestAnimationFrame(() => document.getElementById(anchor)?.scrollIntoView());
     },
     [book.chapters.length, onChapterChange],
   );
@@ -78,8 +80,9 @@ export function BookReader({ book, chapter, onChapterChange, recent, showTitlePa
     }
     document.getElementById("article")?.focus({ preventScroll: true });
     setAnnouncement(`${current.title}. Chapter ${current.index + 1} of ${book.chapters.length}.`);
-    // Record the chapter straight away, so a book read without scrolling doesn't show its title page again.
-    savePosition(recent.id, { fraction: 0, chapter: current.index });
+    // Record the chapter straight away, so a book read without scrolling doesn't show its title page
+    // again. Only the chapter: the fraction saved for it must survive leaving and coming back.
+    saveChapter(recent.id, current.index);
   }, [current.index, current.title, book.chapters.length, setAnnouncement, recent.id]);
 
   // An in-book link may point at an id in another chapter; follow it there.

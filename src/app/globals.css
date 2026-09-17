@@ -422,8 +422,15 @@ html[data-progress="false"] :is(.progress-track, .topbar-status) {
   color: var(--muted);
 }
 
+/* Sections sit inside their chapter: indented, quieter, and without a repeated reading time. */
 .contents-list li[data-depth="3"] button {
-  padding-left: 1rem;
+  padding-left: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.contents-list li[data-depth="3"] button:hover {
+  color: var(--text);
 }
 
 .contents-list button {

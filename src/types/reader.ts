@@ -49,7 +49,7 @@ export interface BookReaderProps {
 export interface ContentsDrawerProps {
   readonly book: Book;
   readonly chapter: number;
-  readonly onSelect: (chapter: number) => void;
+  readonly onSelect: (chapter: number, anchor?: string) => void;
   readonly onClose: () => void;
 }
 

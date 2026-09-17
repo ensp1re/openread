@@ -92,8 +92,7 @@ export function useReaderChrome({
   useEffect(() => {
     if (recent) recentStore.open(recent);
     if (!positionKey) return;
-    const saved = readPosition(positionKey);
-    const f = saved && saved.chapter === chapter ? saved.fraction : 0;
+    const f = readPosition(positionKey, chapter)?.fraction ?? 0;
     if (f > 0.02 && f < 0.98) {
       requestAnimationFrame(() => window.scrollTo({ top: f * document.documentElement.scrollHeight }));
     }

@@ -692,66 +692,67 @@
       ],
       "review": true,
       "notes": [
-        "2026-09-17 review fail by design subagent: must fix: chapter change moves no focus and announces nothing; ?chapter=2.5 white-screens; top bar overlaps at 375px; chapter counter contradicts the chapter title (off-by-one from front matter); splitChapters drops Part headings and treats h1/h2 as equal so contents is always flat. nice: drawer height on landscape with a mouse, aria-modal, onKey listener churn, file size on the title page, title page reappears when no scroll happened"
+        "2026-09-17 review fail by design subagent: must fix: chapter change moves no focus and announces nothing; ?chapter=2.5 white-screens; top bar overlaps at 375px; chapter counter contradicts the chapter title (off-by-one from front matter); splitChapters drops Part headings and treats h1/h2 as equal so contents is always flat. nice: drawer height on landscape with a mouse, aria-modal, onKey listener churn, file size on the title page, title page reappears when no scroll happened",
+        "2026-09-17 review fail by design subagent (2nd): must: contents marks 5 rows current at once; depth-3 entries drop their anchor so sections all open the chapter top; sections repeat the chapter's reading time. regression: saving the chapter on change erased the per-chapter fraction, so Back lands at the top. also: markdown parts book titled 'Part 1'; HTML books never classify as books (wrapper div); faint depth indent"
       ],
       "blockedReason": null,
       "evidence": {
         "version": 2,
         "status": "passed",
-        "at": "2026-09-17T19:09:39Z",
+        "at": "2026-09-17T19:23:45Z",
         "checks": [
           {
             "id": "book-e2e",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 7.2,
-            "log": "docs/runs/F008-20260917T190939Z-book-e2e.log"
+            "seconds": 9.0,
+            "log": "docs/runs/F008-20260917T192345Z-book-e2e.log"
           },
           {
             "id": "files-unit",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.7,
-            "log": "docs/runs/F008-20260917T190939Z-files-unit.log"
+            "log": "docs/runs/F008-20260917T192345Z-files-unit.log"
           },
           {
             "id": "lint",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 2.0,
-            "log": "docs/runs/F008-20260917T190939Z-lint.log"
+            "seconds": 1.3,
+            "log": "docs/runs/F008-20260917T192345Z-lint.log"
           },
           {
             "id": "typecheck",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 1.1,
-            "log": "docs/runs/F008-20260917T190939Z-typecheck.log"
+            "seconds": 0.9,
+            "log": "docs/runs/F008-20260917T192345Z-typecheck.log"
           },
           {
             "id": "unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 9.9,
-            "log": "docs/runs/F008-20260917T190939Z-unit.log"
+            "seconds": 9.5,
+            "log": "docs/runs/F008-20260917T192345Z-unit.log"
           },
           {
             "id": "build",
             "outcome": "passed",
             "exit": 0,
             "seconds": 2.9,
-            "log": "docs/runs/F008-20260917T190939Z-build.log"
+            "log": "docs/runs/F008-20260917T192345Z-build.log"
           },
           {
             "id": "keep",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.0,
-            "log": "docs/runs/F008-20260917T190939Z-keep.log"
+            "log": "docs/runs/F008-20260917T192345Z-keep.log"
           }
         ],
         "taskHash": "8de0a7cfc142b17e",
-        "filesHash": "6e8cedb6cda5e462"
+        "filesHash": "c499acc8a4e63cfb"
       },
       "baseCommit": "26b703efdf685edcb08a0b000dd3ac68afc80585",
       "failedVerifies": 0

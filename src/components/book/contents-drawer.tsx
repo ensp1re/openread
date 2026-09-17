@@ -35,11 +35,12 @@ export function ContentsDrawer({ book, chapter, onSelect, onClose }: ContentsDra
             <li key={`${entry.chapter}-${entry.title}`} data-depth={entry.depth}>
               <button
                 type="button"
-                aria-current={entry.chapter === chapter ? "true" : undefined}
-                onClick={() => onSelect(entry.chapter)}
+                aria-current={entry.chapter === chapter && !entry.anchor ? "true" : undefined}
+                onClick={() => onSelect(entry.chapter, entry.anchor)}
               >
                 <span className="contents-entry-title">{entry.title}</span>
-                <span className="contents-entry-minutes">{book.chapters[entry.chapter]?.readingMinutes} min</span>
+                {/* A section sits inside its chapter; repeating the chapter's time would read as more. */}
+                {!entry.anchor && <span className="contents-entry-minutes">{book.chapters[entry.chapter]?.readingMinutes} min</span>}
               </button>
             </li>
           ))}
