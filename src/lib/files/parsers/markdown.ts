@@ -1,9 +1,11 @@
 import { marked } from "marked";
 import type { DocumentSource, ParsedContent } from "@/types/document";
 
-/** Markdown: the first heading is the title, the rest becomes HTML. */
+/** Markdown: the first top-level heading is the title. Read from the tokens, so a "#" inside a code fence isn't one. */
 export function parseMarkdown(text: string, source: DocumentSource): ParsedContent {
+  const tokens = marked.lexer(text);
+  const heading = tokens.find((t) => t.type === "heading" && t.depth === 1) as { text?: string } | undefined;
+  const title = heading?.text?.trim();
   const html = marked.parse(text, { async: false, gfm: true });
-  const heading = /^#\s+(.+)$/m.exec(text)?.[1]?.trim();
-  return { title: heading || source.name, html: heading ? html.replace(/<h1[^>]*>[\s\S]*?<\/h1>/, "") : html };
+  return { title: title || source.name, html: title ? html.replace(/<h1[^>]*>[\s\S]*?<\/h1>/, "") : html };
 }

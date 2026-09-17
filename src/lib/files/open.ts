@@ -1,4 +1,4 @@
-import { FILE_FORMAT_LABEL, PARSER_VERSION } from "@/constants/files";
+import { FILE_ERROR, FILE_FORMAT_LABEL, MAX_FILE_BYTES, PARSER_VERSION } from "@/constants/files";
 import { RECENT_KIND } from "@/constants/library";
 import { itemHref, storedRecentId } from "@/lib/library/items";
 import { loadParsed, saveFile, saveParsed } from "@/lib/library/files";
@@ -7,7 +7,7 @@ import { libraryDb } from "@/lib/library/db";
 import { LIBRARY_STORE } from "@/constants/library";
 import type { FileErrorCode, StoredFileRecord } from "@/types/document";
 
-export type OpenFileResult = { ok: true; href: string } | { ok: false; code: FileErrorCode | "storage" };
+export type OpenFileResult = { ok: true; href: string } | { ok: false; code: FileErrorCode | "storage"; detail?: string };
 
 const sizeLabel = (bytes: number) => (bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
 
@@ -22,9 +22,16 @@ export async function openFile(file: File): Promise<OpenFileResult> {
   } catch {
     return { ok: false, code: "storage" };
   }
-  if (!saved.ok) return saved;
+  if (!saved.ok) {
+    const label = saved.format ? FILE_FORMAT_LABEL[saved.format] : null;
+    if (saved.code === FILE_ERROR.NOT_YET && label) return { ...saved, detail: `OpenRead can't open ${label} files yet.` };
+    if (saved.code === FILE_ERROR.TOO_LARGE && label) {
+      return { ...saved, detail: `This ${label} file is too large to open (the limit is ${Math.round(MAX_FILE_BYTES[saved.format!] / 1024 / 1024)} MB).` };
+    }
+    return saved;
+  }
 
-  const { record } = saved;
+  const { record, created } = saved;
   const cached = await loadParsed(record.id).catch(() => undefined);
   let doc = cached?.version === PARSER_VERSION ? cached.doc : null;
   if (!doc) {
@@ -32,8 +39,8 @@ export async function openFile(file: File): Promise<OpenFileResult> {
     const { parseFile } = await import("@/lib/files/parse");
     const parsed = await parseFile(record.blob, { name: record.name, format: record.format, size: record.size });
     if (!parsed.ok) {
-      // Nothing readable: don't keep the file around.
-      await libraryDb.delete(LIBRARY_STORE.ITEMS, record.id).catch(() => {});
+      // Nothing readable: drop what this open added, but keep a file that was already stored.
+      if (created) await libraryDb.delete(LIBRARY_STORE.ITEMS, record.id).catch(() => {});
       return parsed;
     }
     doc = parsed.doc;

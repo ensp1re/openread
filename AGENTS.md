@@ -24,6 +24,7 @@ Paste an article URL, read it in a calm, typeset page. No accounts, no database.
 
 - Reading values (sizes, leading, widths, colors) live only as CSS variables in `src/app/globals.css`. Change a value there and update its V- reference; never hardcode one in a component.
 - Any theme color change must keep body text 10–15:1 and secondary ≥ 4.5:1; `e2e/accessibility.spec.ts` must stay green.
+- Bump `PARSER_VERSION` (src/constants/files.ts) whenever a parser's output changes or DOMPurify is upgraded: parsed documents are cached in IndexedDB and would otherwise keep old sanitizer output.
 - Extracted HTML is untrusted: everything rendered with `dangerouslySetInnerHTML` goes through DOMPurify (`src/lib/extract/parse-article.ts`, `src/lib/pasted-article.ts`).
 - Server fetches go only through `fetchPage` in `src/lib/extract/fetch-page.ts`, which blocks private networks. Don't add another fetch path for user URLs.
 - TypeScript layout: named types in `src/types/<domain>.ts`, finite values as `as const` objects in `src/constants/<domain>.ts` with unions derived in types.

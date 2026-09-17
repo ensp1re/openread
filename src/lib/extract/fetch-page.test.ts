@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EXTRACT_ERROR } from "@/constants/extract";
 import { parsePublicUrl } from "@/lib/url";
+import { decodeHtml } from "@/lib/decode";
 import { fetchPage, isBlockedAddress } from "./fetch-page";
 
 describe("isBlockedAddress", () => {
@@ -50,33 +51,28 @@ describe("decodeHtml", () => {
   const utf8 = (s: string) => new TextEncoder().encode(s);
   const TEXT = "Genève — it’s Gérald";
 
-  it("decodes undeclared Windows-1252 pages (28 paulgraham.com essays) instead of producing �", async () => {
-    const { decodeHtml } = await import("./fetch-page");
+  it("decodes undeclared Windows-1252 pages (28 paulgraham.com essays) instead of producing �", () => {
     expect(decodeHtml(cp1252(`<p>${TEXT}</p>`), "text/html")).toBe(`<p>${TEXT}</p>`);
   });
 
-  it("falls back to Windows-1252 when a page wrongly declares UTF-8 and has no UTF-8 characters", async () => {
-    const { decodeHtml } = await import("./fetch-page");
+  it("falls back to Windows-1252 when a page wrongly declares UTF-8 and has no UTF-8 characters", () => {
     expect(decodeHtml(cp1252(`<meta charset="utf-8"><p>${TEXT}</p>`), "text/html")).toContain(TEXT);
     expect(decodeHtml(cp1252(`<p>${TEXT}</p>`), "text/html; charset=UTF-8")).toContain(TEXT);
   });
 
-  it("keeps real UTF-8, with or without a declaration or BOM", async () => {
-    const { decodeHtml } = await import("./fetch-page");
+  it("keeps real UTF-8, with or without a declaration or BOM", () => {
     expect(decodeHtml(utf8(`<p>${TEXT} 日本</p>`), "text/html")).toBe(`<p>${TEXT} 日本</p>`);
     expect(decodeHtml(Uint8Array.from([0xef, 0xbb, 0xbf, ...utf8(TEXT)]), "text/html; charset=windows-1252")).toBe(TEXT);
   });
 
-  it("keeps a mostly-UTF-8 page as UTF-8 even with one broken byte", async () => {
-    const { decodeHtml } = await import("./fetch-page");
+  it("keeps a mostly-UTF-8 page as UTF-8 even with one broken byte", () => {
     const bytes = Uint8Array.from([...utf8("A dash — here "), 0x97, ...utf8(" and more — dashes")]);
     const out = decodeHtml(bytes, "text/html");
     expect(out.startsWith("A dash — here ")).toBe(true);
     expect(out.endsWith(" and more — dashes")).toBe(true);
   });
 
-  it("honours a declared non-UTF-8 charset, including a meta tag after a long head", async () => {
-    const { decodeHtml } = await import("./fetch-page");
+  it("honours a declared non-UTF-8 charset, including a meta tag after a long head", () => {
     const head = `<head>${"<link rel=x>".repeat(800)}<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">`;
     expect(decodeHtml(Uint8Array.from([...utf8(head), 0xe8]), "text/html")).toBe(`${head}è`);
   });

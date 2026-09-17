@@ -30,3 +30,11 @@ describe("detectFormat", () => {
     expect(detectFormat("noextension", TEXT)).toBeNull();
   });
 });
+
+describe("detectFormat: hostile names", () => {
+  it("ignores inherited object keys", () => {
+    expect(detectFormat("notes.constructor", TEXT)).toBeNull();
+    expect(detectFormat("x.__proto__", TEXT)).toBeNull();
+    expect(detectFormat("x.toString", TEXT)).toBeNull();
+  });
+});

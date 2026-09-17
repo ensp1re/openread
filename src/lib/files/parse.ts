@@ -1,16 +1,22 @@
 import DOMPurify from "dompurify";
+import { decodeHtml } from "@/lib/decode";
+import { hardenUrls } from "@/lib/harden-urls";
+import { sanitizeToDom } from "@/lib/sanitize";
 import { FILE_ERROR, FILE_FORMAT, PARSER_VERSION } from "@/constants/files";
 import { WORDS_PER_MINUTE } from "@/constants/extract";
-import { sanitizeToHtml } from "@/lib/sanitize";
 import type { Article } from "@/types/article";
 import type { DocumentSource, ParseResult, ParsedContent } from "@/types/document";
 
 export { PARSER_VERSION };
 
-const decode = (buffer: ArrayBuffer) => new TextDecoder("utf-8").decode(buffer);
+/** Files carry no Content-Type, so the bytes and any meta charset decide (Windows "Save as" is often not UTF-8). */
+const decode = (buffer: ArrayBuffer) => decodeHtml(new Uint8Array(buffer), "");
 
 function toArticle(content: ParsedContent, source: DocumentSource): Article {
-  const html = sanitizeToHtml(DOMPurify, content.html);
+  const body = sanitizeToDom(DOMPurify, content.html);
+  // No document address: relative URLs are dropped rather than resolved against this app.
+  hardenUrls(body, null);
+  const html = body.innerHTML;
   const words = html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
   return {
     url: null,

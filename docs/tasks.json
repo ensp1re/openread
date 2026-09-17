@@ -569,7 +569,7 @@
       "dependsOn": [
         "F006"
       ],
-      "state": "verified",
+      "state": "active",
       "verification": [
         "files-e2e",
         "files-unit",
@@ -585,76 +585,77 @@
       ],
       "review": true,
       "notes": [
-        "2026-09-17 Sanitizer config and the title-suffix helper moved out of src/lib/extract/parse-article.ts into src/lib/sanitize.ts and src/lib/title.ts, so files, pasted text and articles share one config. Extraction behaviour unchanged: extract unit + live checks still pass. Keep list narrowed to the fetching path."
+        "2026-09-17 Sanitizer config and the title-suffix helper moved out of src/lib/extract/parse-article.ts into src/lib/sanitize.ts and src/lib/title.ts, so files, pasted text and articles share one config. Extraction behaviour unchanged: extract unit + live checks still pass. Keep list narrowed to the fetching path.",
+        "2026-09-17 review fail by security subagent: medium: Markdown title/H1 taken from inside a code fence (# comment wins, real H1 deleted); low: 150MB text file ~1.5GB heap; EPUB/PDF/DOCX stored then deleted with contradictory message; failed re-parse deletes an already-stored file; files decoded as UTF-8 only; files skip link/URL hardening (relative URLs resolve against our origin, #fragment links break); EXTENSION_FORMAT inherited keys; drag-leave guard and stuck overlay; no CSP"
       ],
       "blockedReason": null,
       "evidence": {
         "version": 2,
-        "status": "passed",
-        "at": "2026-09-17T18:21:02Z",
+        "status": "failed",
+        "at": "2026-09-17T18:34:47Z",
         "checks": [
           {
             "id": "files-e2e",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 12.3,
-            "log": "docs/runs/F007-20260917T182102Z-files-e2e.log"
+            "seconds": 13.5,
+            "log": "docs/runs/F007-20260917T183447Z-files-e2e.log"
           },
           {
             "id": "files-unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 0.7,
-            "log": "docs/runs/F007-20260917T182102Z-files-unit.log"
+            "seconds": 0.8,
+            "log": "docs/runs/F007-20260917T183447Z-files-unit.log"
           },
           {
             "id": "library-unit",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.6,
-            "log": "docs/runs/F007-20260917T182102Z-library-unit.log"
+            "log": "docs/runs/F007-20260917T183447Z-library-unit.log"
           },
           {
             "id": "lint",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 2.0,
-            "log": "docs/runs/F007-20260917T182102Z-lint.log"
+            "seconds": 1.5,
+            "log": "docs/runs/F007-20260917T183447Z-lint.log"
           },
           {
             "id": "typecheck",
             "outcome": "passed",
             "exit": 0,
             "seconds": 1.0,
-            "log": "docs/runs/F007-20260917T182102Z-typecheck.log"
+            "log": "docs/runs/F007-20260917T183447Z-typecheck.log"
           },
           {
             "id": "unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 10.7,
-            "log": "docs/runs/F007-20260917T182102Z-unit.log"
+            "seconds": 11.5,
+            "log": "docs/runs/F007-20260917T183447Z-unit.log"
           },
           {
             "id": "build",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 3.1,
-            "log": "docs/runs/F007-20260917T182102Z-build.log"
+            "seconds": 3.8,
+            "log": "docs/runs/F007-20260917T183447Z-build.log"
           },
           {
             "id": "keep",
-            "outcome": "passed",
-            "exit": 0,
+            "outcome": "failed",
+            "exit": 1,
             "seconds": 0.0,
-            "log": "docs/runs/F007-20260917T182102Z-keep.log"
+            "log": "docs/runs/F007-20260917T183447Z-keep.log"
           }
         ],
         "taskHash": "3e14de4dd7c7290a",
-        "filesHash": "bbf6a7dac28cfc1e"
+        "filesHash": "75d73eb1e9b3f9c0"
       },
       "baseCommit": "83bec19a61fa634b83a726111530b910636a5ac0",
-      "failedVerifies": 0
+      "failedVerifies": 1
     },
     {
       "id": "F008",

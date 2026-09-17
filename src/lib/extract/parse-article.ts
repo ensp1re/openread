@@ -2,6 +2,8 @@ import { Readability } from "@mozilla/readability";
 import createDOMPurify from "dompurify";
 import { JSDOM } from "jsdom";
 import { WORDS_PER_MINUTE } from "@/constants/extract";
+import { hardenUrls } from "@/lib/harden-urls";
+import { parseSrcset } from "@/lib/srcset";
 import { sanitizeToDom } from "@/lib/sanitize";
 import { splitSiteSuffix } from "@/lib/title";
 import type { Article, SrcsetCandidate } from "@/types/article";
@@ -85,39 +87,6 @@ function takeLeadingDate(body: HTMLElement): string | null {
 
 const BLOCK = new Set(["P", "DIV", "H1", "H2", "H3", "H4", "H5", "H6", "LI", "TD", "TH", "BLOCKQUOTE", "SECTION", "ARTICLE", "HEADER", "FIGURE", "UL", "OL", "PRE", "TABLE", "HR"]);
 
-/**
- * srcset per the HTML spec: a URL is everything up to whitespace (so it may contain commas);
- * trailing commas end the candidate, otherwise a descriptor runs up to the next comma.
- */
-export function parseSrcset(value: string): SrcsetCandidate[] {
-  const out: SrcsetCandidate[] = [];
-  let i = 0;
-  while (i < value.length) {
-    while (i < value.length && /[\s,]/.test(value[i])) i++;
-    const start = i;
-    while (i < value.length && !/\s/.test(value[i])) i++;
-    let url = value.slice(start, i);
-    let descriptor = "";
-    if (url.endsWith(",")) {
-      url = url.replace(/,+$/, "");
-    } else {
-      const d = i;
-      while (i < value.length && value[i] !== ",") i++;
-      descriptor = value.slice(d, i).trim();
-    }
-    if (url) out.push({ url, descriptor });
-  }
-  return out;
-}
-
-const absolute = (value: string, base: string | null) => {
-  try {
-    return new URL(value, base ?? undefined).href;
-  } catch {
-    return null;
-  }
-};
-
 function sanitize(
   html: string,
   baseUrl: string | null,
@@ -166,42 +135,7 @@ function sanitize(
     if (!img.hasAttribute("alt")) img.setAttribute("alt", "");
   }
 
-  // Readability makes URLs absolute, but the simple fallback doesn't; images must not load from our origin.
-  for (const el of body.querySelectorAll("img[src], video[src], video[poster], audio[src], source[src]")) {
-    for (const attr of ["src", "poster"]) {
-      const v = el.getAttribute(attr);
-      if (v === null) continue;
-      const abs = absolute(v, baseUrl);
-      if (abs) el.setAttribute(attr, abs);
-      else el.removeAttribute(attr);
-    }
-  }
-  for (const el of body.querySelectorAll("[srcset]")) {
-    const set = parseSrcset(el.getAttribute("srcset")!)
-      .map(({ url, descriptor }) => {
-        const abs = absolute(url, baseUrl);
-        return abs ? [abs, descriptor].filter(Boolean).join(" ") : null;
-      })
-      .filter(Boolean);
-    if (set.length) el.setAttribute("srcset", set.join(", "));
-    else el.removeAttribute("srcset");
-  }
-
-  for (const a of body.querySelectorAll("a[href]")) {
-    const href = a.getAttribute("href")!;
-    if (href.startsWith("#")) {
-      if (href.length > 1 && !href.startsWith("#user-content-")) a.setAttribute("href", `#user-content-${href.slice(1)}`);
-      continue;
-    }
-    try {
-      const abs = new URL(href, baseUrl ?? undefined);
-      a.setAttribute("href", abs.href);
-      a.setAttribute("target", "_blank");
-      a.setAttribute("rel", "noopener noreferrer");
-    } catch {
-      a.removeAttribute("href");
-    }
-  }
+  hardenUrls(body, baseUrl);
 
   for (const table of body.querySelectorAll("table")) {
     const wrap = doc.createElement("div");

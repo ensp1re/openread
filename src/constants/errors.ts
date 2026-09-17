@@ -29,6 +29,7 @@ export const FILE_ERROR_MESSAGE: Record<string, string> = {
   [FILE_ERROR.DRM]: "This book is protected by DRM, so it can only be opened in the app it was bought for.",
   [FILE_ERROR.FIXED_LAYOUT]: "This book has fixed pages (a comic or picture book), which this reader can't reflow.",
   [FILE_ERROR.NEEDS_PASSWORD]: "This PDF needs a password.",
+  [FILE_ERROR.NOT_YET]: "OpenRead can't open this format yet.",
 };
 
 export const STORAGE_ERROR_MESSAGE = "This browser didn't allow saving the file (private mode, or storage is turned off).";

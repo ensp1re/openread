@@ -56,3 +56,45 @@ describe("parseFile", () => {
     expect(await parseFile(new Blob(["   "]) as unknown as globalThis.Blob, source("empty.txt", FILE_FORMAT.TEXT))).toEqual({ ok: false, code: FILE_ERROR.EMPTY });
   });
 });
+
+describe("review fixes", () => {
+  it("takes the Markdown title from a real heading, not a comment inside a code fence", async () => {
+    const md = ["Intro paragraph.", "", "```sh", "# install the thing", "npm i", "```", "", "# The Real Title", "", "Body text."].join("\n");
+    const r = await parseFile(new Blob([md]) as unknown as globalThis.Blob, source("readme.md", FILE_FORMAT.MARKDOWN));
+    if (!r.ok || r.doc.kind !== "article") throw new Error("parse failed");
+    expect(r.doc.article.title).toBe("The Real Title");
+    expect(r.doc.article.content).toContain("install the thing");
+    expect(r.doc.article.content).not.toContain("<h1>");
+  });
+
+  it("keeps a document's own h1 when no heading matches the title", async () => {
+    const md = "Just a paragraph, with no heading at all, long enough to be read as content.";
+    const r = await parseFile(new Blob([md]) as unknown as globalThis.Blob, source("plain.md", FILE_FORMAT.MARKDOWN));
+    if (!r.ok || r.doc.kind !== "article") throw new Error("parse failed");
+    expect(r.doc.article.title).toBe("plain.md");
+  });
+
+  it("reads files saved in an older encoding, not only UTF-8", async () => {
+    const cp1252 = Uint8Array.from([..."Caf"].map((c) => c.charCodeAt(0)), (n) => n);
+    const bytes = Uint8Array.from([...cp1252, 0xe9, ...new TextEncoder().encode(" notes\n\nA second paragraph with enough words in it to read.")]);
+    const r = await parseFile(new Blob([bytes]) as unknown as globalThis.Blob, source("cafe.txt", FILE_FORMAT.TEXT));
+    if (!r.ok || r.doc.kind !== "article") throw new Error("parse failed");
+    expect(r.doc.article.title).toBe("Café notes");
+  });
+
+  it("drops relative URLs instead of resolving them against the app, and matches #fragment links to prefixed ids", async () => {
+    const html = `<!doctype html><html><body><article>
+      <p id="fn1">${"A paragraph with plenty of words so the extractor keeps this block as content. ".repeat(3)}</p>
+      <p><a href="/settings">relative link</a> <a href="#fn1">footnote</a> <a href="https://example.com/x">external</a></p>
+      <p><img src="/local.png" width="600" height="400" alt="relative image"></p>
+      ${"<p>More text to be sure this is the article body and not page chrome around it.</p>".repeat(3)}
+      </article></body></html>`;
+    const r = await parseFile(new Blob([html]) as unknown as globalThis.Blob, source("saved.html", FILE_FORMAT.HTML));
+    if (!r.ok || r.doc.kind !== "article") throw new Error("parse failed");
+    const { content } = r.doc.article;
+    expect(content).not.toContain('href="/settings"');
+    expect(content).not.toContain('src="/local.png"');
+    expect(content).toContain('href="#user-content-fn1"');
+    expect(content).toMatch(/href="https:\/\/example\.com\/x"[^>]*rel="noopener noreferrer"/);
+  });
+});

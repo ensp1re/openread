@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { parseArticle, parseSrcset } from "./parse-article";
+import { parseSrcset } from "@/lib/srcset";
+import { parseArticle } from "./parse-article";
 
 describe("parseSrcset", () => {
   it("follows the HTML spec for commas inside URLs and missing spaces", () => {

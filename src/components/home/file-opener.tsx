@@ -25,7 +25,7 @@ export function FileOpener() {
       return;
     }
     setBusy(null);
-    setError(result.code === "storage" ? STORAGE_ERROR_MESSAGE : (FILE_ERROR_MESSAGE[result.code] ?? FILE_ERROR_MESSAGE.unreadable));
+    setError(result.detail ?? (result.code === "storage" ? STORAGE_ERROR_MESSAGE : (FILE_ERROR_MESSAGE[result.code] ?? FILE_ERROR_MESSAGE.unreadable)));
   };
 
   useEffect(() => {
@@ -35,7 +35,8 @@ export function FileOpener() {
       dragDepth.current++;
       setDropping(true);
     };
-    const onLeave = () => {
+    const onLeave = (e: DragEvent) => {
+      if (!hasFile(e)) return;
       dragDepth.current = Math.max(0, dragDepth.current - 1);
       if (dragDepth.current === 0) setDropping(false);
     };
@@ -45,13 +46,22 @@ export function FileOpener() {
       e.preventDefault();
       dragDepth.current = 0;
       setDropping(false);
-      void handle(e.dataTransfer?.files[0]);
+      const files = e.dataTransfer?.files;
+      if (files && files.length > 1) setError("Drop one file at a time.");
+      void handle(files?.[0]);
+    };
+    // A drag cancelled with Escape fires dragend, not dragleave; without this the overlay would stick.
+    const onEnd = () => {
+      dragDepth.current = 0;
+      setDropping(false);
     };
     window.addEventListener("dragenter", onEnter);
     window.addEventListener("dragleave", onLeave);
     window.addEventListener("dragover", onOver);
     window.addEventListener("drop", onDrop);
+    window.addEventListener("dragend", onEnd);
     return () => {
+      window.removeEventListener("dragend", onEnd);
       window.removeEventListener("dragenter", onEnter);
       window.removeEventListener("dragleave", onLeave);
       window.removeEventListener("dragover", onOver);

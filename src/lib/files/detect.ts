@@ -13,7 +13,9 @@ export const extensionOf = (name: string) => name.toLowerCase().split(".").pop()
  * The first bytes only overrule an extension that contradicts them (a PDF named .txt).
  */
 export function detectFormat(name: string, head: Uint8Array): FileFormat | null {
-  const byExtension = EXTENSION_FORMAT[extensionOf(name)] as FileFormat | undefined;
+  const ext = extensionOf(name);
+  // Own keys only: a file named "notes.constructor" must not pick up an inherited property.
+  const byExtension = Object.hasOwn(EXTENSION_FORMAT, ext) ? (EXTENSION_FORMAT[ext] as FileFormat) : undefined;
   if (startsWith(head, PDF)) return FILE_FORMAT.PDF;
   if (startsWith(head, ZIP)) return byExtension === FILE_FORMAT.DOCX ? FILE_FORMAT.DOCX : FILE_FORMAT.EPUB;
   // A zip-only format can't be a text file whatever the name says.
