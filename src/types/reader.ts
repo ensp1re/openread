@@ -4,8 +4,15 @@ import type { Book } from "@/types/document";
 import type { RecentSeed } from "@/types/library";
 import type { Preferences } from "@/types/preferences";
 
+/** The PDF this document was reflowed from, and how to show its pages instead. */
+export interface OriginalView {
+  readonly label: string;
+  readonly onView: () => void;
+}
+
 export interface ReaderProps {
   readonly article: Article;
+  readonly original?: OriginalView;
   /** Lists the article under Recent and keys its saved position; without it the URL is the key. */
   readonly recent?: RecentSeed;
 }
@@ -38,6 +45,7 @@ export interface ReaderChromeProps {
 
 export interface BookReaderProps {
   readonly book: Book;
+  readonly original?: OriginalView;
   readonly chapter: number;
   readonly onChapterChange: (chapter: number) => void;
   readonly recent: RecentSeed;
@@ -73,4 +81,15 @@ export interface OptionGroupProps<T extends string> {
 
 export interface ShortcutsDialogProps {
   readonly onClose: () => void;
+}
+
+export interface PdfPagesProps {
+  readonly blob: Blob;
+  readonly onBack: () => void;
+}
+
+export interface PasswordPromptProps {
+  readonly name: string;
+  readonly wrong: boolean;
+  readonly onSubmit: (password: string) => void;
 }

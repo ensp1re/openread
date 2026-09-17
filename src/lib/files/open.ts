@@ -38,7 +38,21 @@ export async function openFile(file: File): Promise<OpenFileResult> {
     // Loaded here, not at module level: the home page shouldn't carry DOMPurify and the format parsers.
     const { parseFile } = await import("@/lib/files/parse");
     const parsed = await parseFile(file, { name: file.name, format, size: file.size });
-    if (!parsed.ok) return parsed;
+    if (!parsed.ok) {
+      // A locked or scanned PDF is still readable — the reader asks for the password, or shows the
+      // pages — so it is kept; anything else is not stored at all.
+      if (parsed.code !== FILE_ERROR.NEEDS_PASSWORD && parsed.code !== FILE_ERROR.NO_TEXT) return parsed;
+      const record = await storeFile(file, id, format).catch(() => null);
+      if (!record) return { ok: false, code: "storage" };
+      recentStore.open({
+        id: storedRecentId(record.id),
+        kind: RECENT_KIND.FILE,
+        title: file.name.replace(/\.[^.]+$/, ""),
+        source: fileSourceLabel(record),
+        href: itemHref(record.id),
+      });
+      return { ok: true, href: itemHref(record.id) };
+    }
     doc = parsed.doc;
   }
 

@@ -43,7 +43,7 @@ export const MAX_FILE_BYTES: Readonly<Record<string, number>> = {
 };
 
 /** Formats with a parser today; the rest are offered but answered with "not yet". */
-export const READABLE_FORMATS: readonly string[] = [FILE_FORMAT.TEXT, FILE_FORMAT.MARKDOWN, FILE_FORMAT.HTML, FILE_FORMAT.EPUB, FILE_FORMAT.DOCX];
+export const READABLE_FORMATS: readonly string[] = [FILE_FORMAT.TEXT, FILE_FORMAT.MARKDOWN, FILE_FORMAT.HTML, FILE_FORMAT.EPUB, FILE_FORMAT.DOCX, FILE_FORMAT.PDF];
 
 export const FILE_ERROR = {
   UNSUPPORTED: "unsupported",
@@ -54,6 +54,7 @@ export const FILE_ERROR = {
   FIXED_LAYOUT: "fixed-layout",
   NEEDS_PASSWORD: "needs-password",
   NOT_YET: "not-yet",
+  NO_TEXT: "no-text",
 } as const;
 
 /** Images are inlined so a cached book still shows them; big ones are dropped rather than bloat storage. */
@@ -65,6 +66,12 @@ export const EPUB_MAX_UNZIPPED_BYTES = 200 * 1024 * 1024;
 /** A document this long (about 50 minutes) with sections of its own reads better as a book. */
 export const BOOK_MIN_WORDS = 12_000;
 export const BOOK_MIN_SECTIONS = 2;
+
+/** Copied from pdfjs-dist on install by scripts/copy-pdf-worker.mjs. */
+export const PDF_WORKER_URL = "/pdf.worker.min.mjs";
+
+/** A PDF this long is a book even without an outline. */
+export const PDF_BOOK_MIN_PAGES = 40;
 
 /** Bump when a parser's output changes, so cached documents are parsed again. */
 export const PARSER_VERSION = 1;

@@ -5,7 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { BookReader } from "@/components/book/book-reader";
 import { readPosition, saveChapter } from "@/lib/library/position";
+import { PdfPages } from "@/components/book/pdf-pages";
+import { PasswordPrompt } from "@/components/password-prompt";
 import { FILE_ERROR_MESSAGE } from "@/constants/errors";
+import { FILE_ERROR, FILE_FORMAT } from "@/constants/files";
 import { PARSER_VERSION } from "@/constants/files";
 import { RECENT_KIND } from "@/constants/library";
 import { fileSourceLabel } from "@/lib/files/open";
@@ -21,16 +24,25 @@ type LoadState =
   | { status: "loading" }
   | { status: "missing" }
   | { status: "failed"; code: FileErrorCode }
+  | { status: "password"; record: StoredFileRecord; wrong: boolean }
+  | { status: "pages"; record: StoredFileRecord; note?: string }
   | { status: "ready"; item: StoredText }
   | { status: "file"; record: StoredFileRecord; doc: ReadableDoc };
 
-/** Reuses the cached parse; a new parser version re-reads the file. */
-async function openStoredFile(record: StoredFileRecord): Promise<LoadState> {
-  const cached = await loadParsed(record.id).catch(() => undefined);
-  if (cached?.version === PARSER_VERSION) return { status: "file", record, doc: cached.doc };
+/** Reuses the cached parse; a new parser version, or a password, re-reads the file. */
+async function openStoredFile(record: StoredFileRecord, password?: string): Promise<LoadState> {
+  if (!password) {
+    const cached = await loadParsed(record.id).catch(() => undefined);
+    if (cached?.version === PARSER_VERSION) return { status: "file", record, doc: cached.doc };
+  }
   const { parseFile } = await import("@/lib/files/parse");
-  const parsed = await parseFile(record.blob, { name: record.name, format: record.format, size: record.size });
-  if (!parsed.ok) return { status: "failed", code: parsed.code };
+  const parsed = await parseFile(record.blob, { name: record.name, format: record.format, size: record.size }, { password });
+  if (!parsed.ok) {
+    if (parsed.code === FILE_ERROR.NEEDS_PASSWORD) return { status: "password", record, wrong: password !== undefined };
+    // A scan has no text to reflow, so its pages are all there is to show.
+    if (parsed.code === FILE_ERROR.NO_TEXT) return { status: "pages", record, note: FILE_ERROR_MESSAGE[FILE_ERROR.NO_TEXT] };
+    return { status: "failed", code: parsed.code };
+  }
   await saveParsed(record.id, PARSER_VERSION, parsed.doc).catch(() => {});
   return { status: "file", record, doc: parsed.doc };
 }
@@ -41,6 +53,9 @@ export function StoredItemView({ id }: StoredItemViewProps) {
   const params = useSearchParams();
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const chapterParam = params.get("chapter");
+  const [password, setPassword] = useState<string | undefined>(undefined);
+  // The original pages are a view of the same file, not a different document.
+  const [showPages, setShowPages] = useState(false);
 
   const setChapter = useCallback(
     (chapter: number) => router.push(`/file/${id}?chapter=${chapter}`, { scroll: false }),
@@ -52,14 +67,14 @@ export function StoredItemView({ id }: StoredItemViewProps) {
     loadStoredItem(id)
       .then(async (item) => {
         if (!item) return { status: "missing" } as LoadState;
-        return item.kind === "file" ? await openStoredFile(item) : ({ status: "ready", item } as LoadState);
+        return item.kind === "file" ? await openStoredFile(item, password) : ({ status: "ready", item } as LoadState);
       })
       .then((next) => alive && setState(next))
       .catch(() => alive && setState({ status: "missing" }));
     return () => {
       alive = false;
     };
-  }, [id]);
+  }, [id, password]);
 
   useEffect(() => {
     const title =
@@ -96,6 +111,21 @@ export function StoredItemView({ id }: StoredItemViewProps) {
     );
   }
 
+  if (state.status === "password") {
+    return <PasswordPrompt name={state.record.name} wrong={state.wrong} onSubmit={setPassword} />;
+  }
+
+  if (state.status === "pages" || (showPages && state.status === "file")) {
+    const record = state.record;
+    const note = state.status === "pages" ? state.note : undefined;
+    return (
+      <main className="reader-main pdf-view">
+        {note && <p className="pdf-notice">{note}</p>}
+        <PdfPages blob={record.blob} onBack={state.status === "pages" ? () => router.push("/") : () => setShowPages(false)} />
+      </main>
+    );
+  }
+
   if (state.status === "failed") {
     return (
       <main className="notice">
@@ -124,7 +154,9 @@ export function StoredItemView({ id }: StoredItemViewProps) {
       source: fileSourceLabel(record),
       href: itemHref(record.id),
     };
-    if (doc.kind === "article") return <Reader article={doc.article} recent={recent} />;
+    const original =
+      record.format === FILE_FORMAT.PDF ? { label: "View the original pages", onView: () => setShowPages(true) } : undefined;
+    if (doc.kind === "article") return <Reader article={doc.article} recent={recent} original={original} />;
 
     // No chapter in the URL: carry on where the book was left, or show its title page.
     const saved = readPosition(recent.id);
@@ -136,6 +168,7 @@ export function StoredItemView({ id }: StoredItemViewProps) {
         chapter={Math.min(Math.max(0, chapter), doc.book.chapters.length - 1)}
         onChapterChange={setChapter}
         recent={recent}
+        original={original}
         showTitlePage={chapterParam === null && !saved}
         onStart={() => {
           saveChapter(recent.id, 0);

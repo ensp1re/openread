@@ -7,7 +7,7 @@ import { sanitizeToDom } from "@/lib/sanitize";
 import { FILE_ERROR, FILE_FORMAT, PARSER_VERSION } from "@/constants/files";
 import { WORDS_PER_MINUTE } from "@/constants/extract";
 import type { Article } from "@/types/article";
-import type { DocumentSource, ParseResult, ParsedContent, ReadableDoc } from "@/types/document";
+import type { Book, DocumentSource, ParseResult, ParsedContent, ReadableDoc } from "@/types/document";
 
 export { PARSER_VERSION };
 
@@ -65,7 +65,22 @@ function toArticle(content: ParsedContent, source: DocumentSource, html: string,
 }
 
 /** Turns a file into something the reader can show. Each format's parser is loaded on demand. */
-export async function parseFile(file: Blob, source: DocumentSource): Promise<ParseResult> {
+/** Chapters built by a parser still go through the sanitizer before they are shown. */
+function sanitizeBook(book: Book): ReadableDoc {
+  const chapters = book.chapters.map((chapter) => {
+    const body = sanitizeToDom(DOMPurify, chapter.content);
+    hardenUrls(body, null);
+    return { ...chapter, content: body.innerHTML };
+  });
+  return { kind: "book", book: { ...book, chapters } };
+}
+
+export async function parseFile(
+  file: Blob,
+  source: DocumentSource,
+  /** pdfWorkerSrc is only passed by tests, which can't reach /pdf.worker.min.mjs. */
+  options: { password?: string; pdfWorkerSrc?: string } = {},
+): Promise<ParseResult> {
   try {
     let content: ParsedContent;
     switch (source.format) {
@@ -83,6 +98,24 @@ export async function parseFile(file: Blob, source: DocumentSource): Promise<Par
         const { parseHtml } = await import("./parsers/html");
         content = parseHtml(decode(await file.arrayBuffer()), source);
         break;
+      }
+      case FILE_FORMAT.PDF: {
+        const { parsePdf, PdfPasswordNeeded, PdfHasNoText } = await import("./parsers/pdf");
+        try {
+          const pdf = await parsePdf(file, options.password, options.pdfWorkerSrc);
+          const { bookFromOutline, pdfIsBook } = await import("./pdf-document");
+          const title = pdf.title.trim() || nameWithoutExtension(source.name);
+          if (pdfIsBook(pdf.pageCount, pdf.outline) && pdf.outline.some((e) => e.depth === 2)) {
+            const book = bookFromOutline(title, pdf.author ?? null, pdf.pageBodies, pdf.pageTexts, pdf.outline);
+            return { ok: true, doc: sanitizeBook(book) };
+          }
+          content = pdf;
+          break;
+        } catch (error) {
+          if (error instanceof PdfPasswordNeeded) return { ok: false, code: FILE_ERROR.NEEDS_PASSWORD };
+          if (error instanceof PdfHasNoText) return { ok: false, code: FILE_ERROR.NO_TEXT };
+          throw error;
+        }
       }
       case FILE_FORMAT.DOCX: {
         const { parseDocx } = await import("./parsers/docx");

@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:live": "LIVE=1 vitest run src/lib/extract/live.test.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "node scripts/copy-pdf-worker.mjs"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
@@ -21,6 +22,7 @@
     "mammoth": "^1.12.3",
     "marked": "^18.0.13",
     "next": "16.3.5",
+    "pdfjs-dist": "^6.3.289",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "undici": "^8.10.2"

@@ -6,7 +6,7 @@ import type { ReaderProps } from "@/types/reader";
 import { ReaderChrome } from "./reader-chrome";
 import { useReaderChrome } from "./use-reader-chrome";
 
-export function Reader({ article, recent }: ReaderProps) {
+export function Reader({ article, recent, original }: ReaderProps) {
   const articleRef = useRef<HTMLElement>(null);
   const positionKey = recent?.id ?? article.url;
   const chrome = useReaderChrome({ positionKey, recent, readingMinutes: article.readingMinutes, contentRef: articleRef });
@@ -38,6 +38,15 @@ export function Reader({ article, recent }: ReaderProps) {
                 {[article.byline, article.published, `${article.readingMinutes} min read`].filter(Boolean).join(" · ")}
               </p>
             </header>
+
+            {original && (
+              <p className="pdf-notice">
+                Reflowed from the PDF.{" "}
+                <button type="button" className="text-button" onClick={original.onView}>
+                  {original.label}
+                </button>
+              </p>
+            )}
 
             <div className="prose" dangerouslySetInnerHTML={{ __html: article.content }} />
           </article>

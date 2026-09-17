@@ -360,6 +360,44 @@ html[data-progress="false"] :is(.progress-track, .topbar-status) {
   background: var(--code-bg);
 }
 
+/* PDFs: a note above reflowed text, and the original pages */
+
+.pdf-notice {
+  max-width: var(--measure);
+  margin: 0 auto 1.5em;
+}
+
+/* Inside the article the column is already set; the notice just follows its left edge. */
+.article .pdf-notice {
+  max-width: none;
+  margin-inline: 0;
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.pdf-view {
+  padding-top: calc(var(--bar-height) + 1rem);
+}
+
+.pdf-pages {
+  max-width: min(62rem, 100%);
+  margin-inline: auto;
+}
+
+.pdf-page-list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.pdf-page-list canvas {
+  width: 100%;
+  height: auto;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+}
+
 /* Book reader: contents, chapter navigation and the title page */
 
 .topbar-start {

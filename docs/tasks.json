@@ -889,7 +889,7 @@
       "dependsOn": [
         "F009"
       ],
-      "state": "verified",
+      "state": "passing",
       "verification": [
         "files-unit"
       ],
@@ -951,7 +951,13 @@
           }
         ],
         "taskHash": "798a601f3322356a",
-        "filesHash": "11075cadbda738f7"
+        "filesHash": "11075cadbda738f7",
+        "commit": "d9d21cb",
+        "doneAt": "2026-09-17T20:11:53Z",
+        "proof": {
+          "1": "src/lib/files/parsers/docx.test.ts: keeps headings, lists, tables, footnotes and images; e2e/files.spec.ts: opens a Word document",
+          "2": "src/lib/files/parsers/docx.test.ts: opens a long document with Heading 1 sections as a book"
+        }
       },
       "baseCommit": "84433baad218c851b1c00b0cd3e96013eb0698c5",
       "failedVerifies": 0
@@ -969,7 +975,7 @@
       "dependsOn": [
         "F010"
       ],
-      "state": "not_started",
+      "state": "active",
       "verification": [
         "files-unit",
         "files-e2e"
@@ -983,7 +989,66 @@
       "review": true,
       "notes": [],
       "blockedReason": null,
-      "evidence": null
+      "evidence": {
+        "version": 2,
+        "status": "failed",
+        "at": "2026-09-17T20:30:25Z",
+        "checks": [
+          {
+            "id": "files-unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.0,
+            "log": "docs/runs/F011-20260917T203025Z-files-unit.log"
+          },
+          {
+            "id": "files-e2e",
+            "outcome": "failed",
+            "exit": 1,
+            "seconds": 12.0,
+            "log": "docs/runs/F011-20260917T203025Z-files-e2e.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.5,
+            "log": "docs/runs/F011-20260917T203025Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.2,
+            "log": "docs/runs/F011-20260917T203025Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 9.5,
+            "log": "docs/runs/F011-20260917T203025Z-unit.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.0,
+            "log": "docs/runs/F011-20260917T203025Z-build.log"
+          },
+          {
+            "id": "keep",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.0,
+            "log": "docs/runs/F011-20260917T203025Z-keep.log"
+          }
+        ],
+        "taskHash": "c1c9ca03671a205d",
+        "filesHash": "4ce37cbfbb45c0f1"
+      },
+      "baseCommit": "d9d21cb9fdbf0b6650600bdaab7310eba2250d27",
+      "failedVerifies": 2
     },
     {
       "id": "F012",

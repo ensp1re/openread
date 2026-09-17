@@ -124,3 +124,33 @@ test("opens a Word document", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("region", { name: "Recent" }).getByRole("listitem").filter({ hasText: "Notes on a Word document" })).toContainText("Word document ·");
 });
+
+test("opens a PDF as reflowed text, with the original pages one click away", async ({ page }) => {
+  await open(page, "two-column.pdf");
+  await expect(page.getByRole("heading", { level: 1, name: /two-column/i })).toBeVisible();
+  await expect(page.locator(".prose")).toContainText("misunderstood, as this sentence shows");
+  await expect(page.locator(".prose")).not.toContainText("A Journal of Typography");
+
+  await page.getByRole("button", { name: "View the original pages" }).click();
+  const canvases = page.locator(".pdf-page-list canvas");
+  await expect(canvases).toHaveCount(3);
+  await expect.poll(async () => (await canvases.first().boundingBox())!.height).toBeGreaterThan(100);
+  await page.getByRole("button", { name: "Back to the text" }).click();
+  await expect(page.locator(".prose")).toBeVisible();
+});
+
+test("a PDF with a password asks for one", async ({ page }) => {
+  await page.goto("/");
+  await page.setInputFiles("input[type=file]", "test/fixtures/locked.pdf");
+  await expect(page.getByRole("heading", { name: "This PDF needs a password." })).toBeVisible();
+  await page.getByLabel("Password").fill("wrong one");
+  await page.getByRole("button", { name: "Open" }).click();
+  await expect(page.locator("form .paste-hint[role=alert]")).toContainText("didn’t open it");
+});
+
+test("a scanned PDF opens as pages, with a note", async ({ page }) => {
+  await page.goto("/");
+  await page.setInputFiles("input[type=file]", "test/fixtures/scanned.pdf");
+  await expect(page.locator(".pdf-notice").first()).toContainText("scan of a page");
+  await expect(page.locator(".pdf-page-list canvas")).toHaveCount(1);
+});

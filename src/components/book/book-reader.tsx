@@ -8,7 +8,7 @@ import { saveChapter } from "@/lib/library/position";
 import type { BookReaderProps } from "@/types/reader";
 import { ContentsDrawer } from "./contents-drawer";
 
-export function BookReader({ book, chapter, onChapterChange, recent, showTitlePage, onStart }: BookReaderProps) {
+export function BookReader({ book, chapter, onChapterChange, recent, showTitlePage, onStart, original }: BookReaderProps) {
   const contentRef = useRef<HTMLElement>(null);
   const contentsButtonRef = useRef<HTMLButtonElement>(null);
   const [contentsOpen, setContentsOpen] = useState(false);
@@ -181,6 +181,15 @@ export function BookReader({ book, chapter, onChapterChange, recent, showTitlePa
                 {current.index + 1} of {book.chapters.length} · {current.readingMinutes} min
               </p>
             </header>
+
+            {original && (
+              <p className="pdf-notice">
+                Reflowed from the PDF.{" "}
+                <button type="button" className="text-button" onClick={original.onView}>
+                  {original.label}
+                </button>
+              </p>
+            )}
 
             <div className="prose" dangerouslySetInnerHTML={{ __html: current.content }} />
           </article>

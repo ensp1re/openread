@@ -10,6 +10,8 @@ const eslintConfig = defineConfig([
     // Default ignores of eslint-config-next:
     ".next/**",
     ".next-*/**",
+    // Third-party build output copied in by scripts/copy-pdf-worker.mjs.
+    "public/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
