@@ -167,3 +167,31 @@ describe("untrusted books", () => {
     expect(r.book.chapters[0].content).toMatch(/xlink:href="data:|href="data:/);
   });
 });
+
+describe("more untrusted books", () => {
+  it("strips an SVG filter image, which also fetches from the network", async () => {
+    const body = `<p>Text.</p><svg xmlns="http://www.w3.org/2000/svg"><filter id="f"><feImage xlink:href="https://evil.example/11.png"/></filter></svg>`;
+    const r = await parseEpub(makeEpub({ "OEBPS/text/two.xhtml": chapter("Two", body) }));
+    if (!r.ok) throw new Error(r.code);
+    expect(r.book.chapters.map((c) => c.content).join("")).not.toContain("evil.example");
+  });
+
+  it("follows a link to another file of the book", async () => {
+    const one = chapter("One", `<p>Read the <a href="two.xhtml">next part</a> of this book, which follows on.</p>`);
+    const r = await parseEpub(makeEpub({ "OEBPS/text/one.xhtml": one }));
+    if (!r.ok) throw new Error(r.code);
+    const href = /href="#([^"]+)"/.exec(r.book.chapters[0].content)?.[1];
+    expect(href).toBeTruthy();
+    expect(r.book.anchors[href!]).toBe(1);
+  });
+
+  it("only ever writes a known image type into a data URL", async () => {
+    const opf = `<package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>T</dc:title></metadata>
+      <manifest><item id="c1" href="text/one.xhtml" media-type="application/xhtml+xml"/><item id="c2" href="text/two.xhtml" media-type="application/xhtml+xml"/><item id="i" href="images/a.gif" media-type="image/gif&quot;&gt;&lt;script&gt;"/></manifest>
+      <spine><itemref idref="c1"/><itemref idref="c2"/></spine></package>`;
+    const r = await parseEpub(makeEpub({ "OEBPS/book.opf": opf }));
+    if (!r.ok) throw new Error(r.code);
+    expect(r.book.chapters[1].content).toContain("data:image/gif;base64,");
+    expect(r.book.chapters[1].content).not.toContain("script");
+  });
+});

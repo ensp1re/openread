@@ -101,7 +101,9 @@ const IMAGE_TYPES: Readonly<Record<string, string>> = {
 
 /** The manifest usually names the type; fall back to the file's extension when it doesn't. */
 function imageType(path: string, declared: string): string {
-  if (declared.startsWith("image/")) return declared;
+  // Only types from the table: a manifest can declare anything, and it ends up inside a data URL.
+  const known = Object.values(IMAGE_TYPES).includes(declared);
+  if (known) return declared;
   const ext = path.toLowerCase().split(".").pop() ?? "";
   return Object.hasOwn(IMAGE_TYPES, ext) ? IMAGE_TYPES[ext] : "image/jpeg";
 }
@@ -234,7 +236,8 @@ export async function parseEpub(file: Blob, maxUnzippedBytes = EPUB_MAX_UNZIPPED
     }
 
     // Anything else that would fetch from the network: a book must not report when it is opened.
-    for (const el of body.querySelectorAll("video, audio, source, track, iframe, [srcset]")) {
+    // feImage fetches its href even outside a referenced filter, so it belongs in this list.
+    for (const el of body.querySelectorAll("video, audio, source, track, iframe, feImage, [srcset]")) {
       if (el.hasAttribute("srcset") && el.tagName.toLowerCase() === "img") el.removeAttribute("srcset");
       else el.remove();
     }
@@ -248,7 +251,8 @@ export async function parseEpub(file: Blob, maxUnzippedBytes = EPUB_MAX_UNZIPPED
         link.removeAttribute("href");
         continue;
       }
-      const fragment = href.includes("#") ? `user-content-${href.split("#")[1]}` : `openread-chapter-${target}`;
+      // DOMPurify prefixed the book's ids, and hardenUrls prefixes fragments; match that on both sides.
+      const fragment = href.includes("#") ? `user-content-${href.split("#")[1]}` : `user-content-openread-chapter-${target}`;
       link.setAttribute("href", `#${fragment}`);
       link.removeAttribute("target");
       link.removeAttribute("rel");
@@ -259,7 +263,7 @@ export async function parseEpub(file: Blob, maxUnzippedBytes = EPUB_MAX_UNZIPPED
     hardenUrls(body, null);
 
     for (const el of body.querySelectorAll("[id]")) anchors[el.id] = index;
-    anchors[`openread-chapter-${index}`] = index;
+    anchors[`user-content-openread-chapter-${index}`] = index;
 
     const heading = body.querySelector("h1, h2, h3");
     const title = (heading?.textContent ?? "").trim();
