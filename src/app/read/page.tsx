@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { ExtractError } from "@/components/extract-error";
+import { RECENT_KIND } from "@/constants/library";
 import { Reader } from "@/components/reader/reader";
 import { extractArticle } from "@/lib/extract";
 import type { ReadPageProps, ReadSearchParams } from "@/types/pages";
@@ -30,5 +31,18 @@ export default async function ReadPage({ searchParams }: ReadPageProps) {
   const { url, simple, result } = await read(searchParams);
   if (!result) redirect("/");
   if (!result.ok) return <ExtractError url={url} code={result.code} status={result.status} simple={simple} />;
-  return <Reader article={result.article} />;
+  const { article } = result;
+  const source = article.siteName ?? (article.url ? new URL(article.url).hostname.replace(/^www\./, "") : null);
+  return (
+    <Reader
+      article={article}
+      recent={{
+        id: article.url ?? url,
+        kind: RECENT_KIND.URL,
+        title: article.title,
+        source,
+        href: `/read?url=${encodeURIComponent(article.url ?? url)}${simple ? "&mode=simple" : ""}`,
+      }}
+    />
+  );
 }

@@ -1,30 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
+import { itemHref, saveText } from "@/lib/library/items";
+import { sanitizePastedHtml, textToHtml } from "@/lib/pasted-article";
 import { parsePublicUrl } from "@/lib/url";
-import { buildPastedArticle, sanitizePastedHtml, textToHtml } from "@/lib/pasted-article";
-import type { Article } from "@/types/article";
-import { Reader } from "./reader/reader";
 
 export function PasteReader() {
   const sourceUrl = parsePublicUrl(useSearchParams().get("url") ?? "")?.href ?? null;
-  const [article, setArticle] = useState<Article | null>(null);
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   // Rich HTML from the clipboard keeps headings, lists and links; plain text is the fallback.
   const pastedHtml = useRef<string | null>(null);
-
-  if (article) {
-    return (
-      <Reader
-        article={article}
-        onExit={() => {
-          setArticle(null);
-          window.scrollTo(0, 0);
-        }}
-      />
-    );
-  }
 
   return (
     <main className="notice">
@@ -37,14 +26,21 @@ export function PasteReader() {
 
         <form
           className="paste-form"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
             const data = new FormData(e.currentTarget);
             const text = String(data.get("text") ?? "");
             if (!text.trim()) return;
             const html = pastedHtml.current ? sanitizePastedHtml(pastedHtml.current) : textToHtml(text);
-            setArticle(buildPastedArticle(String(data.get("title") ?? ""), html, sourceUrl));
-            window.scrollTo(0, 0);
+            setSaving(true);
+            try {
+              // Saved in this browser so Recent can reopen it after the tab closes.
+              const id = await saveText(String(data.get("title") ?? "").trim(), html, sourceUrl);
+              router.push(itemHref(id));
+            } catch {
+              setSaving(false);
+              setError("This browser didn't allow saving the text (private mode or storage turned off).");
+            }
           }}
         >
           <label htmlFor="title">Title (optional)</label>
@@ -63,8 +59,15 @@ export function PasteReader() {
               if (!(e.nativeEvent as InputEvent).inputType?.startsWith("insertFromPaste")) pastedHtml.current = null;
             }}
           />
-          <p className="paste-hint">The text stays in this browser tab. Nothing is uploaded.</p>
-          <button type="submit">Read</button>
+          <p className="paste-hint">The text is kept in this browser so you can reopen it from Recent. Nothing is uploaded.</p>
+          {error && (
+            <p className="paste-hint" role="alert">
+              {error}
+            </p>
+          )}
+          <button type="submit" disabled={saving}>
+            {saving ? "Opening…" : "Read"}
+          </button>
         </form>
       </div>
     </main>

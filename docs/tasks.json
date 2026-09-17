@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "nextId": 6,
+  "nextId": 13,
   "tasks": [
     {
       "id": "F001",
@@ -454,6 +454,254 @@
       },
       "baseCommit": "0f8171d2e8f9f612aa928159776b6e091646b444",
       "failedVerifies": 0
+    },
+    {
+      "id": "F006",
+      "behavior": "Recent lists links and pasted text on the home page and reopens them at the saved position",
+      "acceptance": [
+        "Given an article read partway, when the home page opens, then Recent lists its title, site, progress and when it was opened, and clicking it reopens the article at the same place",
+        "Given a Recent item, when × is pressed, then it disappears with Undo for 5 seconds, and Clear all empties the list",
+        "Given pasted text, when read and the home page opened again, then it is listed and reopens"
+      ],
+      "dependsOn": [],
+      "state": "verified",
+      "verification": [
+        "recent-e2e",
+        "library-unit"
+      ],
+      "refs": [
+        "R-10"
+      ],
+      "keep": [
+        "src/lib/extract/*"
+      ],
+      "review": true,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-17T17:49:04Z",
+        "checks": [
+          {
+            "id": "recent-e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 12.7,
+            "log": "docs/runs/F006-20260917T174904Z-recent-e2e.log"
+          },
+          {
+            "id": "library-unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.1,
+            "log": "docs/runs/F006-20260917T174904Z-library-unit.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 2.0,
+            "log": "docs/runs/F006-20260917T174904Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.9,
+            "log": "docs/runs/F006-20260917T174904Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 11.2,
+            "log": "docs/runs/F006-20260917T174904Z-unit.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.8,
+            "log": "docs/runs/F006-20260917T174904Z-build.log"
+          },
+          {
+            "id": "keep",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.0,
+            "log": "docs/runs/F006-20260917T174904Z-keep.log"
+          }
+        ],
+        "taskHash": "75aa29cb69293877",
+        "filesHash": "50cce31b15720c80"
+      },
+      "baseCommit": "2a75d1ecfc8e4f036a211be8e9d8fdad74aa8400",
+      "failedVerifies": 0
+    },
+    {
+      "id": "F007",
+      "behavior": "Pick or drop TXT, Markdown and HTML files; stored locally; short files open in the article reader",
+      "acceptance": [
+        "Given a .txt, .md or .html file, when picked or dropped on the home page, then it opens in the reader and appears in Recent",
+        "Given the same file opened twice, when stored, then it has one SHA-256 id and one Recent entry",
+        "Given an unsupported type or a file over 150 MB, when picked, then a plain message shows and nothing is stored",
+        "Given a file with scripts, handlers, javascript: links, styles and iframes, when opened, then none reach the page"
+      ],
+      "dependsOn": [
+        "F006"
+      ],
+      "state": "not_started",
+      "verification": [
+        "files-e2e",
+        "files-unit",
+        "library-unit"
+      ],
+      "refs": [
+        "R-11",
+        "R-16"
+      ],
+      "keep": [
+        "src/lib/extract/*"
+      ],
+      "review": true,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": null
+    },
+    {
+      "id": "F008",
+      "behavior": "Long documents open in a book reader with contents and chapter navigation",
+      "acceptance": [
+        "Given a long Markdown book with chapters, when opened, then the title page shows first, and Start reading opens chapter 1",
+        "Given the book reader, when Contents or c is used, then chapters are listed with the current one marked and choosing one opens it",
+        "Given a chapter, when Next, Previous, ] or [ is used, then the adjacent chapter opens",
+        "Given a book read to chapter 3, when reopened from Recent, then chapter 3 opens at the saved position",
+        "Given an in-book link to another chapter's anchor, when clicked, then that chapter opens at the anchor"
+      ],
+      "dependsOn": [
+        "F007"
+      ],
+      "state": "not_started",
+      "verification": [
+        "book-e2e",
+        "files-unit"
+      ],
+      "refs": [
+        "R-12"
+      ],
+      "keep": [
+        "src/lib/extract/*"
+      ],
+      "review": true,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": null
+    },
+    {
+      "id": "F009",
+      "behavior": "EPUB books open with chapters, contents, metadata and images; DRM and fixed-layout get a message",
+      "acceptance": [
+        "Given EPUB 3 and EPUB 2 fixtures, when parsed, then chapter count, contents titles, title, author and images match",
+        "Given an EPUB with META-INF/rights.xml, when opened, then a DRM message shows and nothing is stored",
+        "Given a pre-paginated EPUB, when opened, then a fixed-layout message shows"
+      ],
+      "dependsOn": [
+        "F008"
+      ],
+      "state": "not_started",
+      "verification": [
+        "files-unit",
+        "files-e2e"
+      ],
+      "refs": [
+        "R-13"
+      ],
+      "keep": [
+        "src/lib/extract/*"
+      ],
+      "review": true,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": null
+    },
+    {
+      "id": "F010",
+      "behavior": "DOCX documents open with headings, lists, tables, footnotes and images",
+      "acceptance": [
+        "Given a DOCX with headings, a list, a table, a footnote and an image, when parsed, then those elements are present and sanitized",
+        "Given a long DOCX with Heading 1 sections, when opened, then it opens as a book with those chapters"
+      ],
+      "dependsOn": [
+        "F009"
+      ],
+      "state": "not_started",
+      "verification": [
+        "files-unit"
+      ],
+      "refs": [
+        "R-14"
+      ],
+      "keep": [
+        "src/lib/extract/*"
+      ],
+      "review": false,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": null
+    },
+    {
+      "id": "F011",
+      "behavior": "PDFs open as reflowed text with contents, an original-pages view, password prompt and scanned fallback",
+      "acceptance": [
+        "Given a two-column PDF with running headers and a hyphenated line end, when reflowed, then text is in column order, headers are removed and the word is joined",
+        "Given a PDF with an outline, when opened as a book, then Contents matches the outline",
+        "Given a PDF, when View original pages is chosen, then page canvases render",
+        "Given a password PDF, when opened, then a password prompt shows and the right password opens it",
+        "Given a PDF without text, when opened, then the original view opens with a note"
+      ],
+      "dependsOn": [
+        "F010"
+      ],
+      "state": "not_started",
+      "verification": [
+        "files-unit",
+        "files-e2e"
+      ],
+      "refs": [
+        "R-15"
+      ],
+      "keep": [
+        "src/lib/extract/*"
+      ],
+      "review": true,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": null
+    },
+    {
+      "id": "F012",
+      "behavior": "Docs, accessibility and bundle size for books, documents and Recent",
+      "acceptance": [
+        "Given the home page with Recent, the book reader, Contents and the PDF original view, when checked with axe in all four themes, then there are no WCAG 2.2 A/AA violations",
+        "Given a production build, when the home page first-load JS is compared with before the feature, then it grew by at most 15 KB"
+      ],
+      "dependsOn": [
+        "F011"
+      ],
+      "state": "not_started",
+      "verification": [
+        "a11y"
+      ],
+      "refs": [
+        "R-10",
+        "R-12"
+      ],
+      "keep": [],
+      "review": false,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": null
     }
   ],
   "lastWrapup": {

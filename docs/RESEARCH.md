@@ -48,6 +48,17 @@ Where studies disagree or don't exist, the row says so. Values that rest on prac
 | V-46 | @mozilla/readability is maintained (Firefox uses it), needs a DOM in Node and does not sanitize output. Postlight/Mercury parser is unmaintained since 2023. Defuddle is newer and very active but self-described as work in progress. | [readability](https://github.com/mozilla/readability); [postlight/parser](https://github.com/postlight/parser); [defuddle](https://github.com/kepano/defuddle) | yes | 2026 | 2026-09-17 |
 | V-47 | Pocket shut down July 2025 and Omnivore in November 2024; users lost saved data. A no-account, nothing-stored tool avoids that risk. | [Wikipedia: Pocket](https://en.wikipedia.org/wiki/Pocket_(service)); [TechCrunch](https://techcrunch.com/2024/10/29/elevenlabs-has-hired-the-team-behind-omnivore-a-reader-app/) | mixed | 2024–2025 | 2026-09-17 |
 
+### Books, documents and local storage (checked 2026-09-17)
+
+| ID | Fact | Source | Primary | Published | Checked |
+|---|---|---|---|---|---|
+| V-60 | epub.js 0.3.93 last published 2023, iframe renderer; foliate-js has no npm release and calls itself not stable; fflate 0.8.3 (2026-07) gives a ~30 KB tree-shakable unzip. | [epub.js](https://github.com/futurepress/epub.js); [foliate-js](https://github.com/johnfactotum/foliate-js); [fflate](https://github.com/101arrowz/fflate) | yes | 2023–2026 | 2026-09-17 |
+| V-61 | Vercel functions reject request bodies over 4.5 MB. | [Vercel limits](https://vercel.com/docs/functions/limitations) | yes | current | 2026-09-17 |
+| V-62 | EPUB DRM markers: META-INF/rights.xml (Adobe ADEPT), sinf.xml (Apple FairPlay), license.lcpl (Readium LCP); encryption.xml with only IDPF/Adobe font-obfuscation algorithms is not DRM. | [EPUB OCF 3.3](https://www.w3.org/TR/epub-33/#sec-container-metainf); foliate-js epub.js source | yes | 2023 | 2026-09-17 |
+| V-63 | mammoth 1.12.3 (2026-09) converts DOCX headings, lists, tables, footnotes and images to semantic HTML. | [mammoth](https://github.com/mwilliamson/mammoth.js) | yes | 2026 | 2026-09-17 |
+| V-64 | pdfjs-dist 6.3.289 (2026-08): getTextContent gives positioned runs, not paragraphs; getOutline gives the bookmark tree or null; Turbopack ignores pdf.js's webpackIgnore worker import. | [pdf.js](https://github.com/mozilla/pdf.js); [next.js#65406](https://github.com/vercel/next.js/issues/65406) | yes | 2026 | 2026-09-17 |
+| V-65 | IndexedDB quota is ~60% of disk per origin (Chrome, Safari 17+); Safari deletes script-written storage after 7 days without a visit unless the site is a Home Screen app; navigator.storage.persist() is supported in Chrome, Firefox and Safari 17+. | [MDN quotas](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria); [WebKit storage policy](https://webkit.org/blog/14403/updates-to-storage-policy/) | yes | 2023–2026 | 2026-09-17 |
+
 ## Alternatives
 
 | Name | Used for | Gap for our users' job | Status | Facts |

@@ -3,12 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { POSITION_STORAGE_PREFIX, SIZE_OPTIONS, THEME, THEME_OPTIONS } from "@/constants/preferences";
-import {
-  BAR_ALWAYS_VISIBLE_ABOVE_PX,
-  BAR_REVEAL_SCROLL_UP_PX,
-  MAX_SAVED_POSITIONS,
-} from "@/constants/reader";
+import { SIZE_OPTIONS, THEME, THEME_OPTIONS } from "@/constants/preferences";
+import { BAR_ALWAYS_VISIBLE_ABOVE_PX, BAR_REVEAL_SCROLL_UP_PX } from "@/constants/reader";
+import { readPosition, savePosition } from "@/lib/library/position";
+import { recentStore } from "@/lib/library/recent";
 import { preferencesStore, syncThemeColor } from "@/lib/preferences";
 import type { Preferences } from "@/types/preferences";
 import type { ReaderProps } from "@/types/reader";
@@ -20,29 +18,6 @@ const isTyping = (t: EventTarget | null) =>
   (t.isContentEditable ||
     /^(TEXTAREA|SELECT)$/.test(t.tagName) ||
     (t instanceof HTMLInputElement && !["radio", "checkbox"].includes(t.type)));
-
-function savePosition(url: string, fraction: number) {
-  try {
-    localStorage.setItem(POSITION_STORAGE_PREFIX + url, JSON.stringify({ f: fraction, at: Date.now() }));
-    const keys = Object.keys(localStorage).filter((k) => k.startsWith(POSITION_STORAGE_PREFIX));
-    if (keys.length > MAX_SAVED_POSITIONS) {
-      const oldest = keys
-        .map((k) => ({ k, at: Number(JSON.parse(localStorage.getItem(k) ?? "{}").at) || 0 }))
-        .sort((a, b) => a.at - b.at)[0];
-      localStorage.removeItem(oldest.k);
-    }
-  } catch {
-    // Storage unavailable: position simply isn't remembered.
-  }
-}
-
-function readPosition(url: string): number {
-  try {
-    return Number(JSON.parse(localStorage.getItem(POSITION_STORAGE_PREFIX + url) ?? "{}").f) || 0;
-  } catch {
-    return 0;
-  }
-}
 
 function nextTheme(p: Preferences): Preferences["theme"] {
   const cycle = THEME_OPTIONS.map((o) => o.value).filter((v) => v !== THEME.AUTO);
@@ -58,7 +33,7 @@ function stepSize(p: Preferences, step: 1 | -1): Preferences["size"] {
   return sizes[i];
 }
 
-export function Reader({ article, onExit }: ReaderProps) {
+export function Reader({ article, recent }: ReaderProps) {
   const router = useRouter();
   const prefs = useSyncExternalStore(preferencesStore.subscribe, preferencesStore.get, preferencesStore.getServer);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -80,7 +55,8 @@ export function Reader({ article, onExit }: ReaderProps) {
     if (returnFocus) settingsButtonRef.current?.focus({ preventScroll: true });
   }, []);
   const closeShortcuts = useCallback(() => setShortcutsOpen(false), []);
-  const exit = useCallback(() => (onExit ? onExit() : router.push("/")), [onExit, router]);
+  const exit = useCallback(() => router.push("/"), [router]);
+  const positionKey = recent?.id ?? article.url;
 
   const focusModeRef = useRef(focusMode);
   const toggleFocus = useCallback(() => {
@@ -100,14 +76,17 @@ export function Reader({ article, onExit }: ReaderProps) {
     return () => media.removeEventListener("change", syncThemeColor);
   }, []);
 
-  // Restore where the reader left off in this article.
+  // List it under Recent, then restore where the reader left off.
   useEffect(() => {
-    if (!article.url) return;
-    const f = readPosition(article.url);
+    if (recent) recentStore.open(recent);
+    if (!positionKey) return;
+    const f = readPosition(positionKey)?.fraction ?? 0;
     if (f > 0.02 && f < 0.98) {
       requestAnimationFrame(() => window.scrollTo({ top: f * document.documentElement.scrollHeight }));
     }
-  }, [article.url]);
+    // The seed object is recreated on every render; its id identifies it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [positionKey, recent?.id]);
 
   // One scroll listener drives the progress line, time left, bar visibility and saved position.
   useEffect(() => {
@@ -115,6 +94,7 @@ export function Reader({ article, onExit }: ReaderProps) {
     let upDistance = 0;
     let frame = 0;
     let saveTimer: ReturnType<typeof setTimeout> | undefined;
+    let lastProgress = 0;
 
     const update = () => {
       frame = 0;
@@ -126,6 +106,7 @@ export function Reader({ article, onExit }: ReaderProps) {
         const progress = Math.min(1, Math.max(0, (y - top + window.innerHeight * 0.4) / span));
         if (progressRef.current) progressRef.current.style.transform = `scaleX(${progress})`;
         setMinutesLeft(Math.ceil(article.readingMinutes * (1 - progress)));
+        lastProgress = progress;
       }
 
       if (y < BAR_ALWAYS_VISIBLE_ABOVE_PX) {
@@ -141,10 +122,13 @@ export function Reader({ article, onExit }: ReaderProps) {
       }
       lastY = y;
 
-      if (article.url) {
+      if (positionKey) {
         clearTimeout(saveTimer);
-        const url = article.url;
-        saveTimer = setTimeout(() => savePosition(url, y / document.documentElement.scrollHeight), 400);
+        const key = positionKey;
+        saveTimer = setTimeout(() => {
+          savePosition(key, { fraction: y / document.documentElement.scrollHeight, chapter: 0 });
+          recentStore.setProgress(key, lastProgress);
+        }, 400);
       }
     };
 
@@ -161,7 +145,7 @@ export function Reader({ article, onExit }: ReaderProps) {
       window.removeEventListener("resize", onScroll);
     };
     // Re-run when the progress line is re-created, so it doesn't start empty.
-  }, [article.url, article.readingMinutes, prefs.progress, focusMode]);
+  }, [positionKey, article.readingMinutes, prefs.progress, focusMode]);
 
   // Moving the pointer to the top edge brings the bar back without scrolling.
   useEffect(() => {
@@ -243,15 +227,9 @@ export function Reader({ article, onExit }: ReaderProps) {
 
       <header className="topbar" data-hidden={!barVisible || undefined}>
         <div className="topbar-inner">
-          {onExit ? (
-            <button type="button" className="topbar-home" onClick={onExit}>
-              OpenRead
-            </button>
-          ) : (
-            <Link href="/" className="topbar-home">
-              OpenRead
-            </Link>
-          )}
+          <Link href="/" className="topbar-home">
+            OpenRead
+          </Link>
           <div className="topbar-actions">
             {prefs.progress && !focusMode && (
               <span className="topbar-status" aria-live="off">
@@ -328,13 +306,7 @@ export function Reader({ article, onExit }: ReaderProps) {
               Open the original{host ? ` on ${host}` : ""}
             </a>
           )}
-          {onExit ? (
-            <button type="button" className="text-button" onClick={onExit}>
-              Read another article
-            </button>
-          ) : (
-            <Link href="/">Read another article</Link>
-          )}
+          <Link href="/">Read another article</Link>
         </footer>
       </main>
 

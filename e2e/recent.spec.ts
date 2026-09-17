@@ -1,0 +1,71 @@
+import { expect, test, type Page } from "@playwright/test";
+
+const ESSAY = Array.from(
+  { length: 60 },
+  (_, i) => `Paragraph ${i + 1}. A long essay needs enough text to scroll, so this sentence repeats the idea in plain words.`,
+).join("\n\n");
+
+async function paste(page: Page, title: string) {
+  await page.goto("/paste");
+  await page.getByLabel("Title (optional)").fill(title);
+  await page.getByLabel("Article text").fill(ESSAY);
+  await page.getByRole("button", { name: "Read" }).click();
+  await expect(page).toHaveURL(/\/file\/[0-9a-f]{64}$/);
+  await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
+}
+
+const recent = (page: Page) => page.getByRole("region", { name: "Recent" });
+
+test("pasted text is listed in Recent and reopens at the saved position", async ({ page }) => {
+  await paste(page, "Essay one");
+  const fileUrl = page.url();
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight * 0.5));
+  await page.waitForTimeout(700); // position is saved 400ms after scrolling stops
+
+  await page.goto("/");
+  const row = recent(page).getByRole("listitem").filter({ hasText: "Essay one" });
+  await expect(row).toContainText("Pasted text");
+  await expect(row).toContainText(/\d+%/);
+  await expect(row).toContainText("just now");
+
+  await row.getByRole("link").click();
+  await expect(page).toHaveURL(fileUrl);
+  await expect.poll(() => page.evaluate(() => window.scrollY / document.documentElement.scrollHeight)).toBeGreaterThan(0.4);
+});
+
+test("the list survives closing the tab: a new page shows the same items", async ({ context, page }) => {
+  await paste(page, "Survives");
+  await page.close();
+  const again = await context.newPage();
+  await again.goto("/");
+  await expect(recent(again).getByRole("link", { name: /Survives/ })).toBeVisible();
+});
+
+test("remove with Undo, and Clear all", async ({ page }) => {
+  await paste(page, "Keep me");
+  await paste(page, "Remove me");
+  await page.goto("/");
+
+  await recent(page).getByRole("button", { name: "Remove Remove me from Recent" }).click();
+  await expect(recent(page).getByRole("link", { name: /Remove me/ })).toHaveCount(0);
+  await recent(page).getByRole("button", { name: "Undo" }).click();
+  await expect(recent(page).getByRole("link", { name: /Remove me/ })).toBeVisible();
+
+  await recent(page).getByRole("button", { name: "Clear all" }).click();
+  await expect(recent(page).getByRole("link")).toHaveCount(0);
+  await expect(recent(page).getByRole("status")).toContainText("Cleared Recent.");
+  await page.waitForTimeout(5500);
+  await expect(recent(page)).toHaveCount(0);
+
+  // Stored text is deleted once Undo expires.
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: "This item isn’t saved in this browser." })).toBeVisible();
+});
+
+test("live: a read article is listed with its site", async ({ page }) => {
+  test.skip(!process.env.LIVE, "network test; run with LIVE=1");
+  await page.goto("/read?url=https://www.paulgraham.com/powerful.html");
+  await expect(page.getByRole("heading", { level: 1, name: "Making Startups Powerful" })).toBeVisible();
+  await page.goto("/");
+  await expect(recent(page).getByRole("listitem").filter({ hasText: "Making Startups Powerful" })).toContainText("paulgraham.com");
+});

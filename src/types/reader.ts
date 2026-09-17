@@ -1,10 +1,11 @@
 import type { Article } from "@/types/article";
+import type { RecentSeed } from "@/types/library";
 import type { Preferences } from "@/types/preferences";
 
 export interface ReaderProps {
   readonly article: Article;
-  /** Where "New article" goes; the paste page resets its own state instead of navigating. */
-  readonly onExit?: () => void;
+  /** Lists the article under Recent and keys its saved position; without it the URL is the key. */
+  readonly recent?: RecentSeed;
 }
 
 export interface SettingsPanelProps {

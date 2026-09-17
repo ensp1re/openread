@@ -80,6 +80,52 @@
         "NEXT_DIST_DIR=.next-check pnpm build >/dev/null && node scripts/check-parse-worker.mjs"
       ],
       "timeoutSeconds": 300
+    },
+    {
+      "id": "library-unit",
+      "argv": [
+        "pnpm",
+        "vitest",
+        "run",
+        "src/lib/library"
+      ]
+    },
+    {
+      "id": "files-unit",
+      "argv": [
+        "pnpm",
+        "vitest",
+        "run",
+        "src/lib/files",
+        "src/lib/sanitize.test.ts"
+      ]
+    },
+    {
+      "id": "recent-e2e",
+      "argv": [
+        "sh",
+        "-c",
+        "NEXT_DIST_DIR=.next-check pnpm exec playwright test e2e/recent.spec.ts"
+      ],
+      "timeoutSeconds": 900
+    },
+    {
+      "id": "files-e2e",
+      "argv": [
+        "sh",
+        "-c",
+        "NEXT_DIST_DIR=.next-check pnpm exec playwright test e2e/files.spec.ts"
+      ],
+      "timeoutSeconds": 900
+    },
+    {
+      "id": "book-e2e",
+      "argv": [
+        "sh",
+        "-c",
+        "NEXT_DIST_DIR=.next-check pnpm exec playwright test e2e/book.spec.ts"
+      ],
+      "timeoutSeconds": 900
     }
   ]
 }

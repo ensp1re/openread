@@ -7,13 +7,16 @@ Discovery: tier 2 (outside users; reading-comfort choices need evidence), checke
 ## Users and jobs
 
 - Reader: when I find a long article on a cluttered site, I want to paste its link and read it in a quiet page, so I can read for 30–120 minutes without strain or distraction. (V-44, V-45, V-47)
+- Reader with their own books: when I have an EPUB, PDF or DOCX, I want to open it without uploading it anywhere, so I can read it chapter by chapter and come back to my place. (V-60, V-63)
+- Reader who closes tabs: when I close a tab by accident, I want the link or file listed on the home page, so I can reopen it where I stopped. (V-45)
 - Reader who can't get extraction to work: when a site blocks extraction or needs a login, I want to paste the text myself, so I can still read it comfortably. (V-44)
 
 ## Scope
 
 - First release: R-1 to R-9.
-- Later: justified text option (V-4, V-11 advise against as default); letter/word spacing controls (V-5); remembering a reading list (needs storage; conflicts with D-5).
-- Out: accounts, library, highlights, sync, RSS, AI summaries (V-47, D-5); Bionic Reading and paragraph dimming (V-40).
+- Books, documents and Recent (2026-09-17): R-10 to R-16.
+- Later: MOBI/AZW3/FB2 via foliate-js, ODT (D-17); page-turn mode, highlights, full-text search (D-13); justified text option (V-4, V-11 advise against as default); letter/word spacing controls (V-5); remembering a reading list (needs storage; conflicts with D-5).
+- Out: RTF and CBZ (stale libraries, image-only comics don't fit a typography reader); accounts, library, highlights, sync, RSS, AI summaries (V-47, D-5); Bionic Reading and paragraph dimming (V-40).
 
 ## Domain
 
@@ -23,7 +26,11 @@ Discovery: tier 2 (outside users; reading-comfort choices need evidence), checke
 | Extraction | Fetch a public URL and turn the page into an Article | Uses Readability, then a simpler main-landmark fallback | Fails with one error code: invalid-url, blocked-host, fetch-failed, http-error, not-html, too-large, timeout, no-content |
 | Preferences | Theme, font, text size, line spacing, column width, progress on/off | Stored in this browser only | Unknown stored values fall back to defaults |
 | Focus mode | Reading state with no top bar and no progress line | Toggled per visit | The bar returns only at the top of the page |
-| Reading position | Scroll fraction saved per article URL | localStorage, newest 100 kept | Restored when between 2% and 98% |
+| Reading position | Scroll fraction saved per article URL or `file:<id>` (plus chapter for books) | localStorage, newest 100 kept | Restored when between 2% and 98% |
+| Recent item | A link, file or pasted text the reader opened | localStorage, newest 50; file bytes live in IndexedDB | Opening again moves it to the top; removing it also deletes the stored file and position |
+| Stored file | File bytes plus parsed document, keyed by SHA-256 of the bytes | IndexedDB (`files`, `parsed`) | Parsed cache is discarded when the parser version changes |
+| Readable document | Either an article or a book | Built by a format parser | EPUB is always a book; others are books with ≥ 2 sections and ≥ 12,000 words, or PDFs ≥ 40 pages |
+| Book | Title, author, contents, chapters (each shaped like an article) | Read in the book reader | One chapter on screen at a time |
 
 ## Requirements
 
@@ -37,6 +44,13 @@ Discovery: tier 2 (outside users; reading-comfort choices need evidence), checke
 | R-6 | A small settings panel changes theme, font, size, line spacing and width, and the choice persists in this browser. | Given the panel, when the user picks Sepia, Relaxed, Narrow, Extra large, then `<html>` data attributes change immediately and the theme is still Sepia after navigating home. | e2e | V-6, V-42 |
 | R-7 | Chrome stays out of the way while reading. | Given a long article, when the user scrolls down past 120px, then the top bar hides; when they scroll up more than 48px, it returns; in focus mode the bar and progress line are hidden and Esc leaves focus mode. | e2e | V-41, V-45 |
 | R-8 | Keyboard shortcuts: s settings, t theme, +/− size, f focus, j/k scroll, n new, ? help, Esc close. | Given the reader on desktop, when the user presses +, −, s, Esc, f, Esc, ?, then size grows and shrinks back, the panel opens and closes with focus returned to its button, focus mode toggles, and the shortcuts dialog opens. | e2e | V-42 |
+| R-10 | Links and pasted text the reader opens are listed under Recent on the home page and reopen at the saved position. | Given an article read to 40%, when the home page opens, then Recent lists its title, site, "40%" and when it was opened; clicking it reopens the article at the same place; × removes it with Undo for 5s; Clear all empties the list; pasted text is listed and reopens. | recent-e2e, library-unit | V-45 |
+| R-11 | A supported file picked or dropped on the home page opens in the reader without leaving the browser. | Given a .txt, .md, .html, .epub, .docx or .pdf ≤ 150 MB, when picked or dropped, then it opens (short → article reader, long → book reader), is stored in IndexedDB under its SHA-256, and appears in Recent; an unsupported type or a bigger file shows a plain message and nothing is stored. | files-e2e, library-unit | D-12, V-61 |
+| R-12 | Long documents open in a book reader, one chapter at a time. | Given a book, when opened, then a title page shows (first time) or the saved chapter and position; Contents lists chapters with the current one marked; Next/Previous and `]`/`[` move chapters; `c` opens Contents; in-book links go to the right chapter and anchor; top bar shows minutes left in the chapter. | book-e2e, files-unit | D-13, V-43 |
+| R-13 | EPUB 2 and 3 books open with their chapters, contents, metadata and images; DRM and fixed-layout books get a clear message. | Given a Standard Ebooks EPUB 3 and an EPUB 2, when opened, then chapter count, contents titles, title, author and images match the book; given an EPUB with META-INF/rights.xml, then the message says it is DRM-protected and nothing is shown. | files-unit, files-e2e | D-14, V-62 |
+| R-14 | DOCX documents open with headings, lists, tables, footnotes and images. | Given a DOCX with Heading 1 sections, when opened, then headings become chapters (if long) or h2 sections (if short), and images show. | files-unit | D-15 |
+| R-15 | PDFs open as reflowed text with an original-pages view. | Given a two-column PDF with running headers and a hyphenated line end, when opened, then text reads in column order, headers are gone, the hyphen is joined; the outline (if any) becomes Contents; "View original pages" shows the pages; a password PDF asks for the password; a PDF without text opens in the original view with a note. | files-unit, files-e2e | D-16, V-64 |
+| R-16 | All document HTML is sanitized before display. | Given a file containing scripts, event handlers, javascript: links, styles and iframes, when opened in any format, then none of them reach the page. | files-unit | D-2 |
 | R-9 | When extraction fails, the user gets a plain explanation and ways forward, never a stack trace. | Given a blocked or failing URL, when the reader route runs, then the page says "Couldn't extract this article.", explains the cause, and offers retry, simpler extraction (for no-content), paste the text, and open the original. Pasted text renders in the same reader with markup escaped. | e2e, unit | V-44 |
 
 ## Decisions
@@ -52,6 +66,12 @@ Discovery: tier 2 (outside users; reading-comfort choices need evidence), checke
 | D-7 | Theme changes apply instantly, no color transition | agent default | 2026-09-17 | A transition swapped heading color before the background, making the title unreadable mid-change (seen in testing) |
 | D-8 | Undici fetch with DNS lookup checked at connect time, manual redirects re-validated, 15s timeout; IPv6 forms that embed IPv4 blocked | agent default | 2026-09-17 | R-3; prevents DNS-rebinding between check and connect (security review) |
 | D-9 | In-memory 10-minute cache of successful and too-large results, 50 entries per server process | agent default | 2026-09-17 | Metadata and page render share one fetch; repeated slow URLs don't re-run a worker; many instances would need a shared cache |
+| D-12 | Parse files in the browser; store bytes and parsed documents in IndexedDB keyed by SHA-256; Recent metadata in localStorage (server upload; accounts) | user + agent default | 2026-09-17 | Vercel 4.5 MB body limit (V-61), privacy, D-5 |
+| D-13 | Books scroll one chapter at a time; no page turns (pagination; both) | user | 2026-09-17 | Simplest reliable layout on phones; same typography as articles |
+| D-14 | EPUB parsed by our own code on fflate (epub.js: stagnant iframe renderer; foliate-js: unstable API) | agent default | 2026-09-17 | V-60 |
+| D-15 | DOCX via mammoth, Markdown via marked, HTML files via Readability, all lazy-loaded (docx-preview: page-faithful styling fights our typography) | agent default | 2026-09-17 | V-63 |
+| D-16 | PDF via lazy pdfjs-dist with our own reflow and an original-pages toggle; worker served from /public (pdf2md: second pdf.js copy; reflow only) | user + agent default | 2026-09-17 | V-64 |
+| D-17 | First formats EPUB, PDF, DOCX, TXT, MD, HTML; MOBI/AZW3/FB2 and ODT later | user | 2026-09-17 | request |
 | D-11 | Deploy on Vercel (project aterli/openread, connected to GitHub); jsdom pinned to 26.x because jsdom 30's dependencies `require()` ES modules, which Vercel's Node runtime refused | user | 2026-09-17 | request; seen in production logs |
 | D-10 | Parse in a worker thread: 20s hard limit (8s timed out a 3MB Wikipedia page on Vercel), at most min(4, cores/2) at once, 1GB heap; input caps 4MB and 75k tags (parse in the request thread; caps only) | agent default | 2026-09-17 | Security review: 45KB of malformed nesting blocked jsdom for 11s+; caps alone can't bound parse time. Caps sized so a page at both caps parses in ~5s under 1GB; large Wikipedia pages (~3MB, 43k tags) still work |
 

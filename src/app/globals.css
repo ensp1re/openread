@@ -1090,6 +1090,100 @@ kbd {
   text-decoration-color: currentColor;
 }
 
+/* Recent: plain rows, like a book's list of contents, not cards */
+
+.recent {
+  margin-top: 3rem;
+}
+
+.recent-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.recent-head h2 {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.recent-head .text-button {
+  font-size: 0.8125rem;
+}
+
+.recent-undo {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.recent-undo:empty {
+  display: none;
+}
+
+.recent-list {
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.recent-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-top: 1px solid var(--rule);
+}
+
+.recent-link {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.7rem 0;
+  text-decoration: none;
+}
+
+.recent-title {
+  overflow: hidden;
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  line-height: 1.35;
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-link:hover .recent-title {
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 0.2em;
+}
+
+.recent-meta {
+  overflow: hidden;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.recent-remove {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 8px;
+  font-size: 1.25rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.recent-remove:hover {
+  color: var(--text);
+  background: var(--code-bg);
+}
+
 .home-footnote {
   text-align: center;
   font-size: 0.8125rem;
