@@ -101,6 +101,16 @@ describe("wrapped documents and parts", () => {
     expect(r.doc.book.chapters.map((c) => c.title)).toEqual(["Part 1", "Part 2", "Part 3"]);
   });
 
+  it("names a first chapter headed by the book's own title 'Beginning'", async () => {
+    const chapters = Array.from({ length: 12 }, (_, i) => `<h2>Chapter ${i + 1}</h2>${`<p>${"word ".repeat(150)}</p>`.repeat(8)}`).join("");
+    const html = `<!doctype html><html><head><title>HTML Book</title></head><body><h1>HTML Book</h1><p>Front matter.</p>${chapters}</body></html>`;
+    const r = await parseFile(new Blob([html]) as unknown as globalThis.Blob, { name: "b.html", format: FILE_FORMAT.HTML, size: 9000 });
+    if (!r.ok || r.doc.kind !== "book") throw new Error(`expected a book, got ${r.ok ? r.doc.kind : r.code}`);
+    expect(r.doc.book.chapters[0].title).toBe("Beginning");
+    expect(r.doc.book.chapters[0].content).toContain("Front matter.");
+    expect(r.doc.book.chapters[1].title).toBe("Chapter 1");
+  });
+
   it("opens a long HTML document with headings as a book", async () => {
     const body = Array.from({ length: 12 }, (_, i) => `<h2>Chapter ${i + 1}</h2>${`<p>${"word ".repeat(120)}</p>`.repeat(10)}`).join("");
     const html = `<!doctype html><html><head><title>An HTML Book</title></head><body><article>${body}</article></body></html>`;

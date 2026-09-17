@@ -41,7 +41,11 @@ function promoteTextHeadings(body: HTMLElement) {
  * sections (h2). Headings of the other level become contents entries inside their chapter, so a book
  * with parts keeps them and a book titled by an h1 doesn't list its own title as chapter one.
  */
-export function splitChapters(root: HTMLElement): { chapters: Chapter[]; toc: TocEntry[]; anchors: Record<string, number> } {
+export function splitChapters(
+  root: HTMLElement,
+  /** The document's own title, so a heading repeating it isn't listed as the first chapter. */
+  documentTitle = "",
+): { chapters: Chapter[]; toc: TocEntry[]; anchors: Record<string, number> } {
   const doc = root.ownerDocument;
   // Parsers wrap their output in a div; headings are only found as direct children, so step inside.
   let body = root;
@@ -70,14 +74,19 @@ export function splitChapters(root: HTMLElement): { chapters: Chapter[]; toc: To
   let current = doc.createElement("div");
   let title = "";
 
+  const normalize = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
+  const isDocumentTitle = (t: string) => documentTitle !== "" && normalize(t) === normalize(documentTitle);
+
   const flush = () => {
     const text = (current.textContent ?? "").trim();
     // A heading with nothing under it (a book title above its parts) is not a chapter of its own.
     if (!text && !current.querySelector("img, figure, table")) return;
     const index = chapters.length;
     for (const el of current.querySelectorAll("[id]")) anchors[el.id] = index;
-    chapters.push(toChapter(index, title || (index === 0 ? "Beginning" : `Chapter ${index + 1}`), current.innerHTML, text));
-    toc.push({ title: title || "Beginning", chapter: index });
+    // A first chapter headed by the book's own title is its front matter, not chapter one.
+    const heading = !title || (index === 0 && isDocumentTitle(title)) ? (index === 0 ? "Beginning" : `Chapter ${index + 1}`) : title;
+    chapters.push(toChapter(index, heading, current.innerHTML, text));
+    toc.push({ title: heading, chapter: index });
 
     // Headings inside the chapter become contents entries one level down.
     for (const sub of current.querySelectorAll(boundaryTag === "H1" ? "h2" : "h3")) {

@@ -24,7 +24,7 @@ function toDocument(content: ParsedContent, source: DocumentSource): ReadableDoc
   // splitChapters moves the body's nodes into chapters, so keep the whole document first.
   const html = body.innerHTML;
   const text = body.textContent ?? "";
-  const { chapters, toc, anchors } = splitChapters(body);
+  const { chapters, toc, anchors } = splitChapters(body, title);
 
   if (!isBook(chapters)) return { kind: "article", article: toArticle(content, source, html, text) };
 

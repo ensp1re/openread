@@ -700,60 +700,60 @@
       "evidence": {
         "version": 2,
         "status": "passed",
-        "at": "2026-09-17T19:31:28Z",
+        "at": "2026-09-17T19:39:38Z",
         "checks": [
           {
             "id": "book-e2e",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 7.4,
-            "log": "docs/runs/F008-20260917T193128Z-book-e2e.log"
+            "seconds": 7.5,
+            "log": "docs/runs/F008-20260917T193938Z-book-e2e.log"
           },
           {
             "id": "files-unit",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.8,
-            "log": "docs/runs/F008-20260917T193128Z-files-unit.log"
+            "log": "docs/runs/F008-20260917T193938Z-files-unit.log"
           },
           {
             "id": "lint",
             "outcome": "passed",
             "exit": 0,
             "seconds": 1.4,
-            "log": "docs/runs/F008-20260917T193128Z-lint.log"
+            "log": "docs/runs/F008-20260917T193938Z-lint.log"
           },
           {
             "id": "typecheck",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 1.0,
-            "log": "docs/runs/F008-20260917T193128Z-typecheck.log"
+            "seconds": 1.1,
+            "log": "docs/runs/F008-20260917T193938Z-typecheck.log"
           },
           {
             "id": "unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 9.4,
-            "log": "docs/runs/F008-20260917T193128Z-unit.log"
+            "seconds": 9.5,
+            "log": "docs/runs/F008-20260917T193938Z-unit.log"
           },
           {
             "id": "build",
             "outcome": "passed",
             "exit": 0,
             "seconds": 3.0,
-            "log": "docs/runs/F008-20260917T193128Z-build.log"
+            "log": "docs/runs/F008-20260917T193938Z-build.log"
           },
           {
             "id": "keep",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.0,
-            "log": "docs/runs/F008-20260917T193128Z-keep.log"
+            "log": "docs/runs/F008-20260917T193938Z-keep.log"
           }
         ],
         "taskHash": "8de0a7cfc142b17e",
-        "filesHash": "6b747e70d5542720"
+        "filesHash": "0e726c0cc9290317"
       },
       "baseCommit": "26b703efdf685edcb08a0b000dd3ac68afc80585",
       "failedVerifies": 0
