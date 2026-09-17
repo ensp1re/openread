@@ -43,7 +43,7 @@ export const MAX_FILE_BYTES: Readonly<Record<string, number>> = {
 };
 
 /** Formats with a parser today; the rest are offered but answered with "not yet". */
-export const READABLE_FORMATS: readonly string[] = [FILE_FORMAT.TEXT, FILE_FORMAT.MARKDOWN, FILE_FORMAT.HTML, FILE_FORMAT.EPUB];
+export const READABLE_FORMATS: readonly string[] = [FILE_FORMAT.TEXT, FILE_FORMAT.MARKDOWN, FILE_FORMAT.HTML, FILE_FORMAT.EPUB, FILE_FORMAT.DOCX];
 
 export const FILE_ERROR = {
   UNSUPPORTED: "unsupported",

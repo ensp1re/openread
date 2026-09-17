@@ -786,7 +786,7 @@
       "dependsOn": [
         "F008"
       ],
-      "state": "verified",
+      "state": "passing",
       "verification": [
         "files-unit",
         "files-e2e"
@@ -800,7 +800,8 @@
       "review": true,
       "notes": [
         "2026-09-17 review fail by security subagent: high: remote media (srcset, video, audio, source) in an EPUB still loads from the network, breaking the files-stay-local promise; medium: no decompressed-size guard (zip bomb), fixed-layout detected in only one of four forms, SVG <image> covers lost leaving an empty chapter, linear=no items dropped with their footnotes; low: DRM check fails open on unparseable encryption.xml, case-sensitive META-INF names, file stored before parsing, duplicate spine entries, media-type interpolated into the data URL",
-        "2026-09-17 review fail by security subagent (2nd): medium: <feImage xlink:href=https://...> still fetches remotely; medium: an in-book link to a whole file is dead (hardenUrls prefixes the fragment, the anchors key doesn't match); nit: manifest media-type still interpolated into the data URL"
+        "2026-09-17 review fail by security subagent (2nd): medium: <feImage xlink:href=https://...> still fetches remotely; medium: an in-book link to a whole file is dead (hardenUrls prefixes the fragment, the anchors key doesn't match); nit: manifest media-type still interpolated into the data URL",
+        "2026-09-17 review pass by security subagent (3 rounds): Round 1 FAIL (remote media loaded from books, no zip-bomb guard, fixed layout detected in one form only, SVG covers lost, linear=no dropped). Round 2 FAIL (feImage still fetched; whole-file links dead). Round 3 PASS at 84433ba: headless-Chromium probe over a 14-URL adversarial chapter fires zero requests against a live control; DRM refused in five forms; both Alice fixtures parse with contents, cover and no dangling anchors."
       ],
       "blockedReason": null,
       "evidence": {
@@ -859,7 +860,21 @@
           }
         ],
         "taskHash": "b28f3ba56220b860",
-        "filesHash": "c5d7daecaf85faa7"
+        "filesHash": "c5d7daecaf85faa7",
+        "review": {
+          "result": "pass",
+          "by": "security subagent (3 rounds)",
+          "summary": "Round 1 FAIL (remote media loaded from books, no zip-bomb guard, fixed layout detected in one form only, SVG covers lost, linear=no dropped). Round 2 FAIL (feImage still fetched; whole-file links dead). Round 3 PASS at 84433ba: headless-Chromium probe over a 14-URL adversarial chapter fires zero requests against a live control; DRM refused in five forms; both Alice fixtures parse with contents, cover and no dangling anchors.",
+          "at": "2026-09-17T20:05:09Z",
+          "filesHash": "c5d7daecaf85faa7"
+        },
+        "commit": "84433ba",
+        "doneAt": "2026-09-17T20:05:09Z",
+        "proof": {
+          "1": "src/lib/files/parsers/epub.test.ts: reads a real EPUB 3 and EPUB 2 of the same book (chapters, contents, metadata, images); e2e/files.spec.ts: opens a real EPUB as a book",
+          "2": "src/lib/files/parsers/epub.test.ts: refuses a book protected by DRM (rights/sinf/lcpl/encrypted, any case, unparseable); e2e/files.spec.ts: an EPUB with DRM is refused and nothing is stored",
+          "3": "src/lib/files/parsers/epub.test.ts: refuses fixed-layout books however they say so"
+        }
       },
       "baseCommit": "2a3c7fcdf2abc93f03f4bdd0662247d822be185b",
       "failedVerifies": 0
@@ -874,7 +889,7 @@
       "dependsOn": [
         "F009"
       ],
-      "state": "not_started",
+      "state": "verified",
       "verification": [
         "files-unit"
       ],
@@ -887,7 +902,59 @@
       "review": false,
       "notes": [],
       "blockedReason": null,
-      "evidence": null
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-17T20:11:24Z",
+        "checks": [
+          {
+            "id": "files-unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.1,
+            "log": "docs/runs/F010-20260917T201124Z-files-unit.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.9,
+            "log": "docs/runs/F010-20260917T201124Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.3,
+            "log": "docs/runs/F010-20260917T201124Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 9.6,
+            "log": "docs/runs/F010-20260917T201124Z-unit.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.3,
+            "log": "docs/runs/F010-20260917T201124Z-build.log"
+          },
+          {
+            "id": "keep",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.0,
+            "log": "docs/runs/F010-20260917T201124Z-keep.log"
+          }
+        ],
+        "taskHash": "798a601f3322356a",
+        "filesHash": "11075cadbda738f7"
+      },
+      "baseCommit": "84433baad218c851b1c00b0cd3e96013eb0698c5",
+      "failedVerifies": 0
     },
     {
       "id": "F011",

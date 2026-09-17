@@ -115,7 +115,7 @@ test("a contents entry for a section in another chapter lands on that section", 
   await contents(page).getByRole("button", { name: "Part 3 Section 2" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Part 3" })).toBeVisible();
   const offset = await page.evaluate(() => {
-    const heading = [...document.querySelectorAll(".prose h2")].find((h) => h.textContent?.includes("Part 3 Section 2"));
+    const heading = [...document.querySelectorAll(".prose h2, .prose h3, .prose h4")].find((h) => h.textContent?.includes("Part 3 Section 2"));
     return heading ? heading.getBoundingClientRect().top : null;
   });
   expect(offset).not.toBeNull();

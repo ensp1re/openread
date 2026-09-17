@@ -115,3 +115,12 @@ test("an EPUB with DRM is refused and nothing is stored", async ({ page }) => {
     });
   })).toBe(0);
 });
+
+test("opens a Word document", async ({ page }) => {
+  await open(page, "report.docx");
+  await expect(page.getByRole("heading", { level: 1, name: "Notes on a Word document" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "First section" })).toBeVisible();
+  await expect(page.locator(".prose")).toContainText("A paragraph in a Word document");
+  await page.goto("/");
+  await expect(page.getByRole("region", { name: "Recent" }).getByRole("listitem").filter({ hasText: "Notes on a Word document" })).toContainText("Word document ·");
+});

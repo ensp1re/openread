@@ -2,7 +2,7 @@ import DOMPurify from "dompurify";
 import { decodeHtml } from "@/lib/decode";
 import { hardenUrls } from "@/lib/harden-urls";
 import { isBook } from "@/lib/files/classify";
-import { splitChapters } from "@/lib/files/split-chapters";
+import { demoteHeadings, splitChapters } from "@/lib/files/split-chapters";
 import { sanitizeToDom } from "@/lib/sanitize";
 import { FILE_ERROR, FILE_FORMAT, PARSER_VERSION } from "@/constants/files";
 import { WORDS_PER_MINUTE } from "@/constants/extract";
@@ -21,6 +21,8 @@ function toDocument(content: ParsedContent, source: DocumentSource): ReadableDoc
   const body = sanitizeToDom(DOMPurify, content.html);
   hardenUrls(body, null);
   const title = content.title.trim() || nameWithoutExtension(source.name);
+  // The reader prints the title as the page's h1; the document's own headings sit under it.
+  demoteHeadings(body);
   // splitChapters moves the body's nodes into chapters, so keep the whole document first.
   const html = body.innerHTML;
   const text = body.textContent ?? "";
@@ -80,6 +82,11 @@ export async function parseFile(file: Blob, source: DocumentSource): Promise<Par
       case FILE_FORMAT.HTML: {
         const { parseHtml } = await import("./parsers/html");
         content = parseHtml(decode(await file.arrayBuffer()), source);
+        break;
+      }
+      case FILE_FORMAT.DOCX: {
+        const { parseDocx } = await import("./parsers/docx");
+        content = await parseDocx(file);
         break;
       }
       case FILE_FORMAT.EPUB: {

@@ -13,6 +13,23 @@ const CHAPTER_HEADING = /^\s*((chapter|part|book|section)\b[^.]{0,60}|[IVXLC]{1,
 
 const headingText = (el: Element) => (el.textContent ?? "").trim();
 
+/**
+ * The page prints the document's title as its h1, so a document's own h1s become h2s and everything
+ * under them shifts down one level. Word's "Heading 1" and saved web pages both produce h1s.
+ */
+export function demoteHeadings(body: HTMLElement) {
+  const doc = body.ownerDocument;
+  if (!body.querySelector("h1")) return;
+  for (const level of [5, 4, 3, 2, 1]) {
+    for (const heading of body.querySelectorAll(`h${level}`)) {
+      const replacement = doc.createElement(`h${Math.min(6, level + 1)}`);
+      for (const attr of heading.attributes) replacement.setAttribute(attr.name, attr.value);
+      replacement.append(...heading.childNodes);
+      heading.replaceWith(replacement);
+    }
+  }
+}
+
 /** A lone h1 at the very start is the book's own title, not its first chapter. */
 function isLeadingTitle(body: HTMLElement, heading: Element): boolean {
   for (const node of [...body.childNodes]) {
