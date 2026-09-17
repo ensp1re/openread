@@ -691,65 +691,67 @@
         "src/lib/extract/*"
       ],
       "review": true,
-      "notes": [],
+      "notes": [
+        "2026-09-17 review fail by design subagent: must fix: chapter change moves no focus and announces nothing; ?chapter=2.5 white-screens; top bar overlaps at 375px; chapter counter contradicts the chapter title (off-by-one from front matter); splitChapters drops Part headings and treats h1/h2 as equal so contents is always flat. nice: drawer height on landscape with a mouse, aria-modal, onKey listener churn, file size on the title page, title page reappears when no scroll happened"
+      ],
       "blockedReason": null,
       "evidence": {
         "version": 2,
         "status": "passed",
-        "at": "2026-09-17T18:56:18Z",
+        "at": "2026-09-17T19:09:39Z",
         "checks": [
           {
             "id": "book-e2e",
             "outcome": "passed",
             "exit": 0,
             "seconds": 7.2,
-            "log": "docs/runs/F008-20260917T185618Z-book-e2e.log"
+            "log": "docs/runs/F008-20260917T190939Z-book-e2e.log"
           },
           {
             "id": "files-unit",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.7,
-            "log": "docs/runs/F008-20260917T185618Z-files-unit.log"
+            "log": "docs/runs/F008-20260917T190939Z-files-unit.log"
           },
           {
             "id": "lint",
             "outcome": "passed",
             "exit": 0,
             "seconds": 2.0,
-            "log": "docs/runs/F008-20260917T185618Z-lint.log"
+            "log": "docs/runs/F008-20260917T190939Z-lint.log"
           },
           {
             "id": "typecheck",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 1.0,
-            "log": "docs/runs/F008-20260917T185618Z-typecheck.log"
+            "seconds": 1.1,
+            "log": "docs/runs/F008-20260917T190939Z-typecheck.log"
           },
           {
             "id": "unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 9.8,
-            "log": "docs/runs/F008-20260917T185618Z-unit.log"
+            "seconds": 9.9,
+            "log": "docs/runs/F008-20260917T190939Z-unit.log"
           },
           {
             "id": "build",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 3.1,
-            "log": "docs/runs/F008-20260917T185618Z-build.log"
+            "seconds": 2.9,
+            "log": "docs/runs/F008-20260917T190939Z-build.log"
           },
           {
             "id": "keep",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.0,
-            "log": "docs/runs/F008-20260917T185618Z-keep.log"
+            "log": "docs/runs/F008-20260917T190939Z-keep.log"
           }
         ],
         "taskHash": "8de0a7cfc142b17e",
-        "filesHash": "81463d51eeb3caee"
+        "filesHash": "6e8cedb6cda5e462"
       },
       "baseCommit": "26b703efdf685edcb08a0b000dd3ac68afc80585",
       "failedVerifies": 0

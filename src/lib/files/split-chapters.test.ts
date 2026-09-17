@@ -56,3 +56,33 @@ describe("book or article", () => {
     expect(r.ok && r.doc.kind).toBe("article");
   });
 });
+
+describe("splitChapters: heading levels", () => {
+  it("splits at parts when a book has several h1s, and lists their sections underneath", () => {
+    const { chapters, toc } = splitChapters(
+      dom("<h1>Part I</h1><h2>One</h2><p>a</p><h2>Two</h2><p>b</p><h1>Part II</h1><h2>Three</h2><p>c</p>"),
+    );
+    expect(chapters.map((c) => c.title)).toEqual(["Part I", "Part II"]);
+    expect(toc.map((t) => [t.title, t.chapter, t.depth ?? 2])).toEqual([
+      ["Part I", 0, 2],
+      ["One", 0, 3],
+      ["Two", 0, 3],
+      ["Part II", 1, 2],
+      ["Three", 1, 3],
+    ]);
+  });
+
+  it("drops a leading h1 that is the book's own title and splits at its sections", () => {
+    const { chapters } = splitChapters(dom("<h1>Book Title</h1><p>front matter</p><h2>One</h2><p>a</p><h2>Two</h2><p>b</p>"));
+    expect(chapters.map((c) => c.title)).toEqual(["Beginning", "One", "Two"]);
+    expect(chapters[0].content).not.toContain("Book Title");
+    expect(chapters[0].content).toContain("front matter");
+  });
+
+  it("gives sections an id so contents entries can jump to them", () => {
+    const { toc, anchors } = splitChapters(dom("<h1>Part I</h1><h2>One</h2><p>a</p><h1>Part II</h1><h2>Two</h2><p>b</p>"));
+    const section = toc.find((t) => t.title === "Two")!;
+    expect(section.anchor).toBeTruthy();
+    expect(anchors[section.anchor!]).toBe(1);
+  });
+});

@@ -15,7 +15,7 @@ test("a long document opens on its title page and starts at the first chapter", 
   await page.getByRole("button", { name: "Start reading" }).click();
   await expect(page).toHaveURL(/\?chapter=0$/);
   await expect(page.getByRole("heading", { level: 1, name: "Beginning" })).toBeVisible();
-  await expect(page.locator(".article-meta")).toContainText("Chapter 1 of 13");
+  await expect(page.locator(".article-meta")).toContainText("1 of 13");
 });
 
 test("Contents lists the chapters and opens the one chosen", async ({ page }) => {
@@ -84,4 +84,24 @@ test("the book reader never scrolls sideways", async ({ page }) => {
   await page.getByRole("button", { name: "Contents" }).click();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test("a book opened and left without scrolling comes back to its chapter, not the title page", async ({ page }) => {
+  await openBook(page);
+  await page.getByRole("button", { name: "Start reading" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Beginning" })).toBeVisible();
+  await page.goto("/");
+  await page.getByRole("region", { name: "Recent" }).getByRole("link", { name: /The Long Book/ }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Beginning" })).toBeVisible();
+  await expect(page.locator(".title-page")).toHaveCount(0);
+});
+
+test("the chapter is announced and focus moves to the text", async ({ page, isMobile }) => {
+  test.skip(isMobile, "keyboard");
+  await openBook(page);
+  await page.getByRole("button", { name: "Start reading" }).click();
+  await page.keyboard.press("]");
+  await expect(page.getByRole("heading", { level: 1, name: "Chapter 1" })).toBeVisible();
+  expect(await page.evaluate(() => document.activeElement?.id)).toBe("article");
+  await expect(page.locator("[aria-live=polite]")).toContainText("Chapter 1. Chapter 2 of 13.");
 });

@@ -55,6 +55,9 @@ export function useReaderChrome({
   const progressRef = useRef<HTMLDivElement>(null);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
   const focusModeRef = useRef(focusMode);
+  // Held in a ref: the reader passes a new function whenever its chapter changes, and rebuilding the
+  // key listener each time is needless churn.
+  const onKeyRef = useRef(onKey);
 
   const setPrefs = useCallback((next: Preferences) => preferencesStore.set(next), []);
   const closeSettings = useCallback((returnFocus = true) => {
@@ -72,6 +75,10 @@ export function useReaderChrome({
     setAnnouncement(on ? "Focus mode on. Press Escape to leave." : "Focus mode off");
     setSettingsOpen(false);
   }, []);
+
+  useEffect(() => {
+    onKeyRef.current = onKey;
+  }, [onKey]);
 
   // Keep the browser bar in step with the page, also when Auto follows a system theme change.
   useEffect(() => {
@@ -207,17 +214,17 @@ export function useReaderChrome({
         case "Escape":
           if (settingsOpen) closeSettings();
           else if (focusMode) toggleFocus();
-          else if (!onKey?.(e.key)) return;
+          else if (!onKeyRef.current?.(e.key)) return;
           break;
         default:
           // Reader-specific keys: Contents and chapter navigation in the book reader.
-          if (!onKey?.(e.key)) return;
+          if (!onKeyRef.current?.(e.key)) return;
       }
       e.preventDefault();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeSettings, exit, focusMode, settingsOpen, setPrefs, toggleFocus, onKey, contentRef]);
+  }, [closeSettings, exit, focusMode, settingsOpen, setPrefs, toggleFocus, contentRef]);
 
   return {
     prefs,

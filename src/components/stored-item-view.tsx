@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { BookReader } from "@/components/book/book-reader";
-import { readPosition } from "@/lib/library/position";
+import { readPosition, savePosition } from "@/lib/library/position";
 import { FILE_ERROR_MESSAGE } from "@/constants/errors";
 import { PARSER_VERSION } from "@/constants/files";
 import { RECENT_KIND } from "@/constants/library";
@@ -128,7 +128,8 @@ export function StoredItemView({ id }: StoredItemViewProps) {
 
     // No chapter in the URL: carry on where the book was left, or show its title page.
     const saved = readPosition(recent.id);
-    const chapter = chapterParam !== null ? Number(chapterParam) || 0 : (saved?.chapter ?? 0);
+    // Whole numbers only: book.chapters[2.5] is undefined and would blank the page.
+    const chapter = chapterParam !== null ? Math.trunc(Number(chapterParam)) || 0 : (saved?.chapter ?? 0);
     return (
       <BookReader
         book={doc.book}
@@ -136,7 +137,10 @@ export function StoredItemView({ id }: StoredItemViewProps) {
         onChapterChange={setChapter}
         recent={recent}
         showTitlePage={chapterParam === null && !saved}
-        onStart={() => setChapter(0)}
+        onStart={() => {
+          savePosition(recent.id, { fraction: 0, chapter: 0 });
+          setChapter(0);
+        }}
       />
     );
   }

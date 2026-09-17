@@ -330,6 +330,13 @@ html[data-progress="false"] :is(.progress-track, .topbar-status) {
   font-size: 0.8125rem;
 }
 
+/* On phones the progress line carries this; printing it as well crowds the bar. */
+@media (max-width: 599px) {
+  .topbar-status {
+    display: none;
+  }
+}
+
 .settings-toggle {
   display: grid;
   place-items: center;
@@ -451,7 +458,8 @@ html[data-progress="false"] :is(.progress-track, .topbar-status) {
   font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 599px), (max-height: 500px) and (pointer: coarse) {
+/* Short windows get the sheet too, mouse or touch: an anchored drawer would show a handful of entries. */
+@media (max-width: 599px), (max-height: 500px) {
   .contents-panel {
     top: auto;
     inset: auto 0 0;

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ReaderChrome } from "@/components/reader/reader-chrome";
 import { useReaderChrome } from "@/components/reader/use-reader-chrome";
+import { savePosition } from "@/lib/library/position";
 import type { BookReaderProps } from "@/types/reader";
 import { ContentsDrawer } from "./contents-drawer";
 
@@ -67,6 +68,20 @@ export function BookReader({ book, chapter, onChapterChange, recent, showTitlePa
     onKey,
   });
 
+  // A new chapter: put focus and the screen reader at the start of the text, not on a button far below.
+  const firstRender = useRef(true);
+  const { setAnnouncement } = chrome;
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    document.getElementById("article")?.focus({ preventScroll: true });
+    setAnnouncement(`${current.title}. Chapter ${current.index + 1} of ${book.chapters.length}.`);
+    // Record the chapter straight away, so a book read without scrolling doesn't show its title page again.
+    savePosition(recent.id, { fraction: 0, chapter: current.index });
+  }, [current.index, current.title, book.chapters.length, setAnnouncement, recent.id]);
+
   // An in-book link may point at an id in another chapter; follow it there.
   useEffect(() => {
     const el = contentRef.current;
@@ -96,7 +111,6 @@ export function BookReader({ book, chapter, onChapterChange, recent, showTitlePa
         <ReaderChrome chrome={chrome} showProgress={false}>
           <main id="article" tabIndex={-1} className="reader-main">
             <div className="title-page">
-              <p className="article-source">{recent.source}</p>
               <h1 className="article-title">{book.title}</h1>
               {book.author && <p className="article-dek">{book.author}</p>}
               <p className="article-meta">
@@ -148,7 +162,7 @@ export function BookReader({ book, chapter, onChapterChange, recent, showTitlePa
               </p>
               <h1 className="article-title">{current.title}</h1>
               <p className="article-meta">
-                Chapter {current.index + 1} of {book.chapters.length} · {current.readingMinutes} min
+                {current.index + 1} of {book.chapters.length} · {current.readingMinutes} min
               </p>
             </header>
 

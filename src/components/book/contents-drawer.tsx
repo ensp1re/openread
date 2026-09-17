@@ -19,6 +19,7 @@ export function ContentsDrawer({ book, chapter, onSelect, onClose }: ContentsDra
         ref={ref}
         id="book-contents"
         role="dialog"
+        aria-modal="true"
         aria-label="Contents"
         className="contents-panel"
         onKeyDown={(e) => {

@@ -43,7 +43,7 @@ test("home with Recent, and the book reader with Contents, have no WCAG A/AA vio
   expect(await violations(page)).toEqual([]); // title page
 
   await page.getByRole("button", { name: "Start reading" }).click();
-  await expect(page.locator(".article-meta")).toContainText("Chapter 1 of 13");
+  await expect(page.locator(".article-meta")).toContainText("1 of 13");
   expect(await violations(page)).toEqual([]);
 
   await page.getByRole("button", { name: "Contents" }).click();
