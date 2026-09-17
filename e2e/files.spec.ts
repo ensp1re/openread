@@ -155,3 +155,12 @@ test("a scanned PDF opens as pages, with a note", async ({ page }) => {
   await expect(page.locator(".pdf-notice").first()).toContainText("scan of a page");
   await expect(page.locator(".pdf-page-list canvas")).toHaveCount(1);
 });
+
+test("switching between the text and the pages keeps the keyboard in place", async ({ page, isMobile }) => {
+  test.skip(isMobile, "keyboard");
+  await open(page, "two-column.pdf");
+  await page.getByRole("button", { name: "View the original pages" }).click();
+  await expect(page.getByRole("button", { name: "Back to the text" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: "View the original pages" })).toBeFocused();
+});

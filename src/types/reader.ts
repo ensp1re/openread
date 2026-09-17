@@ -8,6 +8,8 @@ import type { Preferences } from "@/types/preferences";
 export interface OriginalView {
   readonly label: string;
   readonly onView: () => void;
+  /** Set when the reader has just come back from the pages, so focus returns to this link. */
+  readonly returning?: boolean;
 }
 
 export interface ReaderProps {
@@ -86,6 +88,7 @@ export interface ShortcutsDialogProps {
 export interface PdfPagesProps {
   readonly blob: Blob;
   readonly onBack: () => void;
+  readonly backLabel?: string;
 }
 
 export interface PasswordPromptProps {

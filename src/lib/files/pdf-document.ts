@@ -1,5 +1,5 @@
 import { WORDS_PER_MINUTE } from "@/constants/extract";
-import { PDF_BOOK_MIN_PAGES } from "@/constants/files";
+import { PDF_BOOK_MIN_PAGES, PDF_PAGES_PER_CHAPTER } from "@/constants/files";
 import { toChapter } from "@/lib/files/split-chapters";
 import type { Book, Chapter, TocEntry } from "@/types/document";
 import type { PdfOutlineEntry } from "@/types/pdf";
@@ -14,7 +14,10 @@ export function bookFromOutline(
   pageTexts: readonly string[],
   outline: readonly PdfOutlineEntry[],
 ): Book {
-  const tops = outline.filter((e) => e.depth === 2);
+  // Several bookmarks can start on one page; the first becomes the chapter, the rest are sections.
+  const topLevel = outline.filter((e) => e.depth === 2);
+  const tops = topLevel.filter((e, i) => i === 0 || e.page !== topLevel[i - 1].page);
+  const sections = outline.filter((e) => !tops.includes(e));
   const starts = tops.map((e) => e.page);
   const chapters: Chapter[] = [];
   const toc: TocEntry[] = [];
@@ -27,13 +30,21 @@ export function bookFromOutline(
     chapters.push(toChapter(index, chapterTitle, body, text));
     toc.push({ title: chapterTitle, chapter: index });
     for (let page = from; page <= to; page++) anchors[pageAnchor(page)] = index;
-    for (const sub of outline.filter((e) => e.depth > 2 && e.page >= from && e.page <= to)) {
+    for (const sub of sections.filter((e) => e.page >= from && e.page <= to)) {
       toc.push({ title: sub.title, chapter: index, anchor: pageAnchor(sub.page), depth: 3 });
     }
   };
 
-  if (starts[0] > 1) pushChapter("Beginning", 1, starts[0] - 1);
-  tops.forEach((entry, i) => pushChapter(entry.title, entry.page, (tops[i + 1]?.page ?? pageBodies.length + 1) - 1));
+  if (tops.length === 0) {
+    // No bookmarks: a long PDF is still easier to read in pieces than as one endless page.
+    for (let from = 1; from <= pageBodies.length; from += PDF_PAGES_PER_CHAPTER) {
+      const to = Math.min(pageBodies.length, from + PDF_PAGES_PER_CHAPTER - 1);
+      pushChapter(from === to ? `Page ${from}` : `Pages ${from}–${to}`, from, to);
+    }
+  } else {
+    if (starts[0] > 1) pushChapter("Beginning", 1, starts[0] - 1);
+    tops.forEach((entry, i) => pushChapter(entry.title, entry.page, (tops[i + 1]?.page ?? pageBodies.length + 1) - 1));
+  }
 
   const wordCount = chapters.reduce((sum, c) => sum + c.wordCount, 0);
   return {

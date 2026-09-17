@@ -43,7 +43,8 @@ async function openStoredFile(record: StoredFileRecord, password?: string): Prom
     if (parsed.code === FILE_ERROR.NO_TEXT) return { status: "pages", record, note: FILE_ERROR_MESSAGE[FILE_ERROR.NO_TEXT] };
     return { status: "failed", code: parsed.code };
   }
-  await saveParsed(record.id, PARSER_VERSION, parsed.doc).catch(() => {});
+  // A locked PDF is not cached: unlocking it once must not leave its text readable to anyone after.
+  if (!password) await saveParsed(record.id, PARSER_VERSION, parsed.doc).catch(() => {});
   return { status: "file", record, doc: parsed.doc };
 }
 
@@ -56,6 +57,8 @@ export function StoredItemView({ id }: StoredItemViewProps) {
   const [password, setPassword] = useState<string | undefined>(undefined);
   // The original pages are a view of the same file, not a different document.
   const [showPages, setShowPages] = useState(false);
+  // True just after leaving the pages, so the reader can put focus back on the link that opened them.
+  const [returning, setReturning] = useState(false);
 
   const setChapter = useCallback(
     (chapter: number) => router.push(`/file/${id}?chapter=${chapter}`, { scroll: false }),
@@ -121,7 +124,18 @@ export function StoredItemView({ id }: StoredItemViewProps) {
     return (
       <main className="reader-main pdf-view">
         {note && <p className="pdf-notice">{note}</p>}
-        <PdfPages blob={record.blob} onBack={state.status === "pages" ? () => router.push("/") : () => setShowPages(false)} />
+        <PdfPages
+          blob={record.blob}
+          backLabel={state.status === "pages" ? "Open something else" : "Back to the text"}
+          onBack={
+            state.status === "pages"
+              ? () => router.push("/")
+              : () => {
+                  setShowPages(false);
+                  setReturning(true);
+                }
+          }
+        />
       </main>
     );
   }
@@ -155,7 +169,7 @@ export function StoredItemView({ id }: StoredItemViewProps) {
       href: itemHref(record.id),
     };
     const original =
-      record.format === FILE_FORMAT.PDF ? { label: "View the original pages", onView: () => setShowPages(true) } : undefined;
+      record.format === FILE_FORMAT.PDF ? { label: "View the original pages", onView: () => setShowPages(true), returning } : undefined;
     if (doc.kind === "article") return <Reader article={doc.article} recent={recent} original={original} />;
 
     // No chapter in the URL: carry on where the book was left, or show its title page.

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { OriginalLink } from "@/components/reader/original-link";
 import { ReaderChrome } from "@/components/reader/reader-chrome";
 import { useReaderChrome } from "@/components/reader/use-reader-chrome";
 import { saveChapter } from "@/lib/library/position";
@@ -182,14 +183,7 @@ export function BookReader({ book, chapter, onChapterChange, recent, showTitlePa
               </p>
             </header>
 
-            {original && (
-              <p className="pdf-notice">
-                Reflowed from the PDF.{" "}
-                <button type="button" className="text-button" onClick={original.onView}>
-                  {original.label}
-                </button>
-              </p>
-            )}
+            {original && <OriginalLink original={original} />}
 
             <div className="prose" dangerouslySetInnerHTML={{ __html: current.content }} />
           </article>

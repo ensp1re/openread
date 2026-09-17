@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef } from "react";
 import type { ReaderProps } from "@/types/reader";
+import { OriginalLink } from "./original-link";
 import { ReaderChrome } from "./reader-chrome";
 import { useReaderChrome } from "./use-reader-chrome";
 
@@ -39,14 +40,7 @@ export function Reader({ article, recent, original }: ReaderProps) {
               </p>
             </header>
 
-            {original && (
-              <p className="pdf-notice">
-                Reflowed from the PDF.{" "}
-                <button type="button" className="text-button" onClick={original.onView}>
-                  {original.label}
-                </button>
-              </p>
-            )}
+            {original && <OriginalLink original={original} />}
 
             <div className="prose" dangerouslySetInnerHTML={{ __html: article.content }} />
           </article>

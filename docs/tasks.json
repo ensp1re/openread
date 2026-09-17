@@ -987,65 +987,67 @@
         "src/lib/extract/*"
       ],
       "review": true,
-      "notes": [],
+      "notes": [
+        "2026-09-17 review fail by design subagent: must: two bookmarks on one page make an empty chapter and move its text; pages view never frees canvases (1GB on 500 pages); pageCount in deps parses the document twice; scanned PDF says Back to the text; focus dropped on both view switches; a password-opened PDF caches its decrypted text. nice: notice not sticky, dark pages harsh, unreadable at 375px, placeholder jumps, subscripts split paragraphs, rotated stamp inside a sentence, long PDFs without bookmarks never become books"
+      ],
       "blockedReason": null,
       "evidence": {
         "version": 2,
         "status": "passed",
-        "at": "2026-09-17T20:31:23Z",
+        "at": "2026-09-17T20:52:10Z",
         "checks": [
           {
             "id": "files-unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 1.0,
-            "log": "docs/runs/F011-20260917T203123Z-files-unit.log"
+            "seconds": 1.2,
+            "log": "docs/runs/F011-20260917T205210Z-files-unit.log"
           },
           {
             "id": "files-e2e",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 11.8,
-            "log": "docs/runs/F011-20260917T203123Z-files-e2e.log"
+            "seconds": 12.0,
+            "log": "docs/runs/F011-20260917T205210Z-files-e2e.log"
           },
           {
             "id": "lint",
             "outcome": "passed",
             "exit": 0,
             "seconds": 2.0,
-            "log": "docs/runs/F011-20260917T203123Z-lint.log"
+            "log": "docs/runs/F011-20260917T205210Z-lint.log"
           },
           {
             "id": "typecheck",
             "outcome": "passed",
             "exit": 0,
             "seconds": 1.0,
-            "log": "docs/runs/F011-20260917T203123Z-typecheck.log"
+            "log": "docs/runs/F011-20260917T205210Z-typecheck.log"
           },
           {
             "id": "unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 9.7,
-            "log": "docs/runs/F011-20260917T203123Z-unit.log"
+            "seconds": 9.8,
+            "log": "docs/runs/F011-20260917T205210Z-unit.log"
           },
           {
             "id": "build",
             "outcome": "passed",
             "exit": 0,
             "seconds": 3.1,
-            "log": "docs/runs/F011-20260917T203123Z-build.log"
+            "log": "docs/runs/F011-20260917T205210Z-build.log"
           },
           {
             "id": "keep",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.0,
-            "log": "docs/runs/F011-20260917T203123Z-keep.log"
+            "log": "docs/runs/F011-20260917T205210Z-keep.log"
           }
         ],
         "taskHash": "c1c9ca03671a205d",
-        "filesHash": "f8fe470cf4d6b064"
+        "filesHash": "afb1944b468cc917"
       },
       "baseCommit": "d9d21cb9fdbf0b6650600bdaab7310eba2250d27",
       "failedVerifies": 0

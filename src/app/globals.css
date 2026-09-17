@@ -380,6 +380,14 @@ html[data-progress="false"] :is(.progress-track, .topbar-status) {
   padding-top: calc(var(--bar-height) + 1rem);
 }
 
+.pdf-notice-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 0.5rem 0;
+  background: var(--bg);
+}
+
 .pdf-pages {
   max-width: min(62rem, 100%);
   margin-inline: auto;
@@ -388,14 +396,31 @@ html[data-progress="false"] :is(.progress-track, .topbar-status) {
 .pdf-page-list {
   display: grid;
   gap: 1.5rem;
+  /* A page drawn narrower than ~700px is unreadable, so a phone scrolls sideways instead. */
+  overflow-x: auto;
+  justify-items: center;
 }
 
 .pdf-page-list canvas {
-  width: 100%;
+  max-width: none;
   height: auto;
-  background: var(--surface);
+  /* Until a page is drawn, hold roughly A4 so the list doesn't jump as pages arrive. */
+  aspect-ratio: 1 / 1.414;
+  width: 100%;
+  background: white;
   border: 1px solid var(--rule);
   border-radius: 2px;
+}
+
+/* Paper stays paper at night, only a little dimmer: inverting would wreck figures. */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]):not([data-theme="sepia"]):not([data-theme="soft"]) .pdf-page-list canvas {
+    filter: brightness(0.82);
+  }
+}
+
+html[data-theme="dark"] .pdf-page-list canvas {
+  filter: brightness(0.82);
 }
 
 /* Book reader: contents, chapter navigation and the title page */

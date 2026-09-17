@@ -71,6 +71,8 @@ export async function parsePdf(file: Blob, password?: string, workerSrc = PDF_WO
     const content = await page.getTextContent();
     const items = content.items
       .filter((i): i is Extract<typeof i, { str: string }> => "str" in i)
+      // Sideways text (an arXiv stamp down the margin) isn't part of the reading order.
+      .filter((i) => Math.abs(i.transform[1]) < 0.01 && Math.abs(i.transform[2]) < 0.01)
       .map((i) => ({
         text: i.str,
         x: i.transform[4],

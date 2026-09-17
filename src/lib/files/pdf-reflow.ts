@@ -119,7 +119,8 @@ export function toBlocks(pages: readonly PdfPage[]): PdfBlock[] {
       const startsParagraph =
         !current ||
         isHeading ||
-        (current && Math.abs(line.size - current.size) > bodySize * 0.15) ||
+        // Only a jump up in size starts something new: a subscript is smaller and belongs to the line.
+        (current && line.size > current.size + bodySize * 0.15) ||
         gap > lineGap * 1.6 ||
         line.x > leftEdge + line.size * 0.8;
 

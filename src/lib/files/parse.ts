@@ -105,7 +105,7 @@ export async function parseFile(
           const pdf = await parsePdf(file, options.password, options.pdfWorkerSrc);
           const { bookFromOutline, pdfIsBook } = await import("./pdf-document");
           const title = pdf.title.trim() || nameWithoutExtension(source.name);
-          if (pdfIsBook(pdf.pageCount, pdf.outline) && pdf.outline.some((e) => e.depth === 2)) {
+          if (pdfIsBook(pdf.pageCount, pdf.outline)) {
             const book = bookFromOutline(title, pdf.author ?? null, pdf.pageBodies, pdf.pageTexts, pdf.outline);
             return { ok: true, doc: sanitizeBook(book) };
           }

@@ -1,12 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PasswordPromptProps } from "@/types/reader";
 
 /** A PDF can be locked; the password is used to open it and never stored. */
 export function PasswordPrompt({ name, wrong, onSubmit }: PasswordPromptProps) {
   const [password, setPassword] = useState("");
+  const field = useRef<HTMLInputElement>(null);
+
+  // After a wrong password, put the cursor back on it, ready to be replaced.
+  useEffect(() => {
+    if (wrong) field.current?.select();
+  }, [wrong]);
 
   return (
     <main className="notice">
@@ -26,6 +32,7 @@ export function PasswordPrompt({ name, wrong, onSubmit }: PasswordPromptProps) {
           <label htmlFor="pdf-password">Password</label>
           <input
             id="pdf-password"
+            ref={field}
             type="password"
             autoComplete="off"
             value={password}

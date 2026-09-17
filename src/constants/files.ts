@@ -72,6 +72,10 @@ export const PDF_WORKER_URL = "/pdf.worker.min.mjs";
 
 /** A PDF this long is a book even without an outline. */
 export const PDF_BOOK_MIN_PAGES = 40;
+/** A long PDF with no bookmarks is cut into pieces of this many pages. */
+export const PDF_PAGES_PER_CHAPTER = 10;
+/** A page drawn narrower than this is unreadable; on a phone the list scrolls sideways instead. */
+export const PDF_PAGE_MIN_WIDTH = 700;
 
 /** Bump when a parser's output changes, so cached documents are parsed again. */
 export const PARSER_VERSION = 1;
