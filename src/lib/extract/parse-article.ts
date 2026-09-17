@@ -162,6 +162,8 @@ function sanitize(
       img.remove();
       continue;
     }
+    // Content images (not icons) fill the column, so a 410px painting doesn't sit in a corner.
+    if (w >= 300) img.setAttribute("data-wide", "");
     img.setAttribute("loading", "lazy");
     img.setAttribute("decoding", "async");
     if (!img.hasAttribute("alt")) img.setAttribute("alt", "");

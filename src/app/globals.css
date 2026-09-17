@@ -839,8 +839,12 @@ kbd {
   display: block;
 }
 
-.prose p > img {
-  margin-block: 0.5em;
+.prose img[data-wide] {
+  width: 100%;
+}
+
+.prose :where(p, a) > img {
+  margin-block: 0.5em 1em;
 }
 
 .prose figure {

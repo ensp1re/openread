@@ -48,6 +48,7 @@ describe("parseArticle", () => {
     expect(a.content).toContain('href="https://example.com/relative"');
     expect(a.content).toContain('src="https://example.com/a.png"');
     expect(a.content).toContain('loading="lazy"');
+    expect(a.content).toContain("data-wide");
   });
 
   it("restores lazy-loaded images and drops tracking pixels", () => {
