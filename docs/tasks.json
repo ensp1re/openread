@@ -569,7 +569,7 @@
       "dependsOn": [
         "F006"
       ],
-      "state": "active",
+      "state": "verified",
       "verification": [
         "files-e2e",
         "files-unit",
@@ -580,82 +580,75 @@
         "R-16"
       ],
       "keep": [
-        "src/lib/extract/fetch-page.ts",
-        "the article extraction behaviour (extract-unit and live checks)"
+        "the article extraction and fetching behaviour (extract-unit and live checks)"
       ],
       "review": true,
       "notes": [
         "2026-09-17 Sanitizer config and the title-suffix helper moved out of src/lib/extract/parse-article.ts into src/lib/sanitize.ts and src/lib/title.ts, so files, pasted text and articles share one config. Extraction behaviour unchanged: extract unit + live checks still pass. Keep list narrowed to the fetching path.",
-        "2026-09-17 review fail by security subagent: medium: Markdown title/H1 taken from inside a code fence (# comment wins, real H1 deleted); low: 150MB text file ~1.5GB heap; EPUB/PDF/DOCX stored then deleted with contradictory message; failed re-parse deletes an already-stored file; files decoded as UTF-8 only; files skip link/URL hardening (relative URLs resolve against our origin, #fragment links break); EXTENSION_FORMAT inherited keys; drag-leave guard and stuck overlay; no CSP"
+        "2026-09-17 review fail by security subagent: medium: Markdown title/H1 taken from inside a code fence (# comment wins, real H1 deleted); low: 150MB text file ~1.5GB heap; EPUB/PDF/DOCX stored then deleted with contradictory message; failed re-parse deletes an already-stored file; files decoded as UTF-8 only; files skip link/URL hardening (relative URLs resolve against our origin, #fragment links break); EXTENSION_FORMAT inherited keys; drag-leave guard and stuck overlay; no CSP",
+        "2026-09-17 decodeHtml also moved out of src/lib/extract/fetch-page.ts into src/lib/decode.ts so opened files decode like fetched pages; fetching behaviour unchanged (fetch-page unit tests and the live check pass)."
       ],
       "blockedReason": null,
       "evidence": {
         "version": 2,
-        "status": "failed",
-        "at": "2026-09-17T18:34:47Z",
+        "status": "passed",
+        "at": "2026-09-17T18:37:03Z",
         "checks": [
           {
             "id": "files-e2e",
             "outcome": "passed",
             "exit": 0,
             "seconds": 13.5,
-            "log": "docs/runs/F007-20260917T183447Z-files-e2e.log"
+            "log": "docs/runs/F007-20260917T183703Z-files-e2e.log"
           },
           {
             "id": "files-unit",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.8,
-            "log": "docs/runs/F007-20260917T183447Z-files-unit.log"
+            "log": "docs/runs/F007-20260917T183703Z-files-unit.log"
           },
           {
             "id": "library-unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 0.6,
-            "log": "docs/runs/F007-20260917T183447Z-library-unit.log"
+            "seconds": 0.7,
+            "log": "docs/runs/F007-20260917T183703Z-library-unit.log"
           },
           {
             "id": "lint",
             "outcome": "passed",
             "exit": 0,
             "seconds": 1.5,
-            "log": "docs/runs/F007-20260917T183447Z-lint.log"
+            "log": "docs/runs/F007-20260917T183703Z-lint.log"
           },
           {
             "id": "typecheck",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 1.0,
-            "log": "docs/runs/F007-20260917T183447Z-typecheck.log"
+            "seconds": 1.1,
+            "log": "docs/runs/F007-20260917T183703Z-typecheck.log"
           },
           {
             "id": "unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 11.5,
-            "log": "docs/runs/F007-20260917T183447Z-unit.log"
+            "seconds": 11.6,
+            "log": "docs/runs/F007-20260917T183703Z-unit.log"
           },
           {
             "id": "build",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 3.8,
-            "log": "docs/runs/F007-20260917T183447Z-build.log"
-          },
-          {
-            "id": "keep",
-            "outcome": "failed",
-            "exit": 1,
-            "seconds": 0.0,
-            "log": "docs/runs/F007-20260917T183447Z-keep.log"
+            "seconds": 3.3,
+            "log": "docs/runs/F007-20260917T183703Z-build.log"
           }
         ],
         "taskHash": "3e14de4dd7c7290a",
-        "filesHash": "75d73eb1e9b3f9c0"
+        "filesHash": "be2b2ec01b18f668"
       },
       "baseCommit": "83bec19a61fa634b83a726111530b910636a5ac0",
-      "failedVerifies": 1
+      "failedVerifies": 0
     },
     {
       "id": "F008",

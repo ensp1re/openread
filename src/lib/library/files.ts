@@ -1,5 +1,5 @@
 import { LIBRARY_STORE } from "@/constants/library";
-import { FILE_ERROR, FILE_FORMAT_LABEL, MAX_FILE_BYTES, READABLE_FORMATS } from "@/constants/files";
+import { FILE_ERROR, MAX_FILE_BYTES, READABLE_FORMATS } from "@/constants/files";
 import { detectFormat } from "@/lib/files/detect";
 import { sha256Hex } from "@/lib/hash";
 import { libraryDb, requestPersistentStorage } from "@/lib/library/db";

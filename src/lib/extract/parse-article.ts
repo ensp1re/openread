@@ -3,10 +3,9 @@ import createDOMPurify from "dompurify";
 import { JSDOM } from "jsdom";
 import { WORDS_PER_MINUTE } from "@/constants/extract";
 import { hardenUrls } from "@/lib/harden-urls";
-import { parseSrcset } from "@/lib/srcset";
 import { sanitizeToDom } from "@/lib/sanitize";
 import { splitSiteSuffix } from "@/lib/title";
-import type { Article, SrcsetCandidate } from "@/types/article";
+import type { Article } from "@/types/article";
 
 const MIN_TEXT_LENGTH = 200;
 
