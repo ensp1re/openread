@@ -100,7 +100,8 @@ export function PdfPages({ blob, onBack, backLabel = "Back to the text" }: PdfPa
         </button>
       </p>
       {failed && <p className="pdf-notice">These pages couldn&rsquo;t be drawn.</p>}
-      <div ref={containerRef} className="pdf-page-list" aria-label="Pages of the document">
+      {/* Focusable because it scrolls sideways on phones: a keyboard must be able to reach it. */}
+      <div ref={containerRef} className="pdf-page-list" role="group" aria-label="Pages of the document" tabIndex={0}>
         {Array.from({ length: pageCount }, (_, i) => (
           <canvas key={i} data-page={i + 1} aria-label={`Page ${i + 1}`} role="img" />
         ))}

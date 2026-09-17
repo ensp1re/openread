@@ -102,6 +102,15 @@ export function RecentList() {
     movingFocus.current = false;
   }, [undoShown]);
 
+  // How much of this browser's storage the saved files take, and the one way they can disappear.
+  const [usage, setUsage] = useState<string | null>(null);
+  useEffect(() => {
+    void navigator.storage
+      ?.estimate?.()
+      .then(({ usage: bytes }) => bytes && bytes > 1024 * 1024 && setUsage(`${(bytes / 1024 / 1024).toFixed(bytes > 100 * 1024 * 1024 ? 0 : 1)} MB`))
+      .catch(() => {});
+  }, [items.length]);
+
   useEffect(() => {
     void collectUnusedItems().catch(() => {});
     // Leaving the page makes a pending removal final.
@@ -166,6 +175,13 @@ export function RecentList() {
           );
         })}
       </ol>
+
+      {usage && (
+        <p className="recent-storage">
+          Files are kept in this browser ({usage}). Safari clears them after 7 days without a visit, unless the site is added to
+          the Home Screen.
+        </p>
+      )}
 
       {items.length > RECENT_VISIBLE_ITEMS && (
         <button type="button" className="text-button" onClick={() => setShowAll((s) => !s)}>

@@ -54,3 +54,16 @@ test("home with Recent, and the book reader with Contents, have no WCAG A/AA vio
   await expect(page.getByRole("region", { name: "Recent" })).toBeVisible();
   expect(await violations(page)).toEqual([]);
 });
+
+test("the PDF views have no WCAG A/AA violations", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.setInputFiles("input[type=file]", "test/fixtures/two-column.pdf");
+  await page.waitForURL(/\/file\/[0-9a-f]{64}/);
+  await expect(page.getByRole("heading", { level: 1, name: "Reading on Screens" })).toBeVisible();
+  expect(await violations(page)).toEqual([]);
+
+  await page.getByRole("button", { name: "View the original pages" }).click();
+  await expect(page.locator(".pdf-page-list canvas").first()).toBeVisible();
+  expect(await violations(page)).toEqual([]);
+});

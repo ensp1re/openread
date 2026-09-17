@@ -126,6 +126,15 @@
         "NEXT_DIST_DIR=.next-check pnpm exec playwright test e2e/book.spec.ts"
       ],
       "timeoutSeconds": 900
+    },
+    {
+      "id": "bundle",
+      "argv": [
+        "sh",
+        "-c",
+        "NEXT_DIST_DIR=.next-check PORT=3299 node scripts/check-home-js.mjs"
+      ],
+      "timeoutSeconds": 600
     }
   ]
 }

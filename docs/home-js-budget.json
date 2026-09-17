@@ -1,0 +1,5 @@
+{
+  "baselineGzipKB": 172.8,
+  "allowedGrowthKB": 15,
+  "note": "Measured before books and documents were added (F006). The format parsers, DOMPurify, pdf.js, mammoth and fflate must stay behind dynamic imports."
+}

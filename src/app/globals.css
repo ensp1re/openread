@@ -1516,6 +1516,13 @@ input:focus-visible + .file-button {
   font-variant-numeric: tabular-nums;
 }
 
+.recent-storage {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
 .recent-remove {
   display: grid;
   place-items: center;

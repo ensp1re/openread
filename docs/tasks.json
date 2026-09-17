@@ -975,7 +975,7 @@
       "dependsOn": [
         "F010"
       ],
-      "state": "verified",
+      "state": "passing",
       "verification": [
         "files-unit",
         "files-e2e"
@@ -988,7 +988,8 @@
       ],
       "review": true,
       "notes": [
-        "2026-09-17 review fail by design subagent: must: two bookmarks on one page make an empty chapter and move its text; pages view never frees canvases (1GB on 500 pages); pageCount in deps parses the document twice; scanned PDF says Back to the text; focus dropped on both view switches; a password-opened PDF caches its decrypted text. nice: notice not sticky, dark pages harsh, unreadable at 375px, placeholder jumps, subscripts split paragraphs, rotated stamp inside a sentence, long PDFs without bookmarks never become books"
+        "2026-09-17 review fail by design subagent: must: two bookmarks on one page make an empty chapter and move its text; pages view never frees canvases (1GB on 500 pages); pageCount in deps parses the document twice; scanned PDF says Back to the text; focus dropped on both view switches; a password-opened PDF caches its decrypted text. nice: notice not sticky, dark pages harsh, unreadable at 375px, placeholder jumps, subscripts split paragraphs, rotated stamp inside a sentence, long PDFs without bookmarks never become books",
+        "2026-09-17 review pass by design subagent (2 rounds): Round 1 FAIL (empty chapters from same-page bookmarks, 1GB retained canvases, document parsed twice, wrong back label, focus dropped, decrypted text cached). Round 2 PASS at 61863ad: 6 non-empty chapters on the real paper, 15MB peak over 500 pages with 3 canvases live, 1 worker, focus correct both ways, locked PDFs never cached."
       ],
       "blockedReason": null,
       "evidence": {
@@ -1047,7 +1048,23 @@
           }
         ],
         "taskHash": "c1c9ca03671a205d",
-        "filesHash": "afb1944b468cc917"
+        "filesHash": "afb1944b468cc917",
+        "review": {
+          "result": "pass",
+          "by": "design subagent (2 rounds)",
+          "summary": "Round 1 FAIL (empty chapters from same-page bookmarks, 1GB retained canvases, document parsed twice, wrong back label, focus dropped, decrypted text cached). Round 2 PASS at 61863ad: 6 non-empty chapters on the real paper, 15MB peak over 500 pages with 3 canvases live, 1 worker, focus correct both ways, locked PDFs never cached.",
+          "at": "2026-09-17T21:02:07Z",
+          "filesHash": "afb1944b468cc917"
+        },
+        "commit": "61863ad",
+        "doneAt": "2026-09-17T21:02:07Z",
+        "proof": {
+          "1": "src/lib/files/pdf-reflow.test.ts: column order, running heads, hyphen join, headings; src/lib/files/parsers/pdf.test.ts: reflows a two-column page in reading order",
+          "2": "src/lib/files/pdf-document.test.ts: cuts the pages at the bookmarks; keeps sections sharing a page; splits a long PDF into page ranges",
+          "3": "e2e/files.spec.ts: opens a PDF as reflowed text, with the original pages one click away",
+          "4": "e2e/files.spec.ts: a PDF with a password asks for one (wrong password re-prompts)",
+          "5": "e2e/files.spec.ts: a scanned PDF opens as pages, with a note"
+        }
       },
       "baseCommit": "d9d21cb9fdbf0b6650600bdaab7310eba2250d27",
       "failedVerifies": 0
@@ -1062,9 +1079,10 @@
       "dependsOn": [
         "F011"
       ],
-      "state": "not_started",
+      "state": "verified",
       "verification": [
-        "a11y"
+        "a11y",
+        "bundle"
       ],
       "refs": [
         "R-10",
@@ -1074,7 +1092,59 @@
       "review": false,
       "notes": [],
       "blockedReason": null,
-      "evidence": null
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-17T21:04:55Z",
+        "checks": [
+          {
+            "id": "a11y",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 7.5,
+            "log": "docs/runs/F012-20260917T210455Z-a11y.log"
+          },
+          {
+            "id": "bundle",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.9,
+            "log": "docs/runs/F012-20260917T210455Z-bundle.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.5,
+            "log": "docs/runs/F012-20260917T210455Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.2,
+            "log": "docs/runs/F012-20260917T210455Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 9.5,
+            "log": "docs/runs/F012-20260917T210455Z-unit.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.0,
+            "log": "docs/runs/F012-20260917T210455Z-build.log"
+          }
+        ],
+        "taskHash": "e763adbf1ce670a8",
+        "filesHash": "02f0983af41decef"
+      },
+      "baseCommit": "61863adb69ea4c4cd8140086f80137485cc294d8",
+      "failedVerifies": 0
     }
   ],
   "lastWrapup": {
