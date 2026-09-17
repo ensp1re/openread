@@ -1,11 +1,10 @@
 import { FILE_ERROR, FILE_FORMAT_LABEL, MAX_FILE_BYTES, PARSER_VERSION } from "@/constants/files";
 import { RECENT_KIND } from "@/constants/library";
+import { sha256Hex } from "@/lib/hash";
+import { checkFile, loadParsed, saveParsed, storeFile } from "@/lib/library/files";
 import { itemHref, storedRecentId } from "@/lib/library/items";
-import { loadParsed, saveFile, saveParsed } from "@/lib/library/files";
 import { recentStore } from "@/lib/library/recent";
-import { libraryDb } from "@/lib/library/db";
-import { LIBRARY_STORE } from "@/constants/library";
-import type { FileErrorCode, StoredFileRecord } from "@/types/document";
+import type { FileErrorCode, ReadableDoc, StoredFileRecord } from "@/types/document";
 
 export type OpenFileResult = { ok: true; href: string } | { ok: false; code: FileErrorCode | "storage"; detail?: string };
 
@@ -14,37 +13,41 @@ const sizeLabel = (bytes: number) => (bytes >= 1024 * 1024 ? `${(bytes / 1024 / 
 export const fileSourceLabel = (record: Pick<StoredFileRecord, "format" | "size">) =>
   `${FILE_FORMAT_LABEL[record.format]} · ${sizeLabel(record.size)}`;
 
-/** Stores the file, parses it (reusing a cached parse), lists it under Recent and says where to go. */
+/**
+ * Reads the file, then keeps it: a file OpenRead can't open is never written to this browser.
+ * A file opened before is recognised by its hash and reuses the parse kept with it.
+ */
 export async function openFile(file: File): Promise<OpenFileResult> {
-  let saved;
-  try {
-    saved = await saveFile(file);
-  } catch {
-    return { ok: false, code: "storage" };
-  }
-  if (!saved.ok) {
-    const label = saved.format ? FILE_FORMAT_LABEL[saved.format] : null;
-    if (saved.code === FILE_ERROR.NOT_YET && label) return { ...saved, detail: `OpenRead can't open ${label} files yet.` };
-    if (saved.code === FILE_ERROR.TOO_LARGE && label) {
-      return { ...saved, detail: `This ${label} file is too large to open (the limit is ${Math.round(MAX_FILE_BYTES[saved.format!] / 1024 / 1024)} MB).` };
+  const checked = await checkFile(file).catch(() => null);
+  if (!checked) return { ok: false, code: "storage" };
+  if (!checked.ok) {
+    const label = checked.format ? FILE_FORMAT_LABEL[checked.format] : null;
+    if (checked.code === FILE_ERROR.NOT_YET && label) return { ...checked, detail: `OpenRead can't open ${label} files yet.` };
+    if (checked.code === FILE_ERROR.TOO_LARGE && label) {
+      return { ...checked, detail: `This ${label} file is too large to open (the limit is ${Math.round(MAX_FILE_BYTES[checked.format!] / 1024 / 1024)} MB).` };
     }
-    return saved;
+    return checked;
   }
 
-  const { record, created } = saved;
-  const cached = await loadParsed(record.id).catch(() => undefined);
-  let doc = cached?.version === PARSER_VERSION ? cached.doc : null;
+  const { format } = checked;
+  const id = await sha256Hex(await file.arrayBuffer());
+  const cached = await loadParsed(id).catch(() => undefined);
+  let doc: ReadableDoc | null = cached?.version === PARSER_VERSION ? cached.doc : null;
+
   if (!doc) {
     // Loaded here, not at module level: the home page shouldn't carry DOMPurify and the format parsers.
     const { parseFile } = await import("@/lib/files/parse");
-    const parsed = await parseFile(record.blob, { name: record.name, format: record.format, size: record.size });
-    if (!parsed.ok) {
-      // Nothing readable: drop what this open added, but keep a file that was already stored.
-      if (created) await libraryDb.delete(LIBRARY_STORE.ITEMS, record.id).catch(() => {});
-      return parsed;
-    }
+    const parsed = await parseFile(file, { name: file.name, format, size: file.size });
+    if (!parsed.ok) return parsed;
     doc = parsed.doc;
-    await saveParsed(record.id, PARSER_VERSION, doc).catch(() => {});
+  }
+
+  let record: StoredFileRecord;
+  try {
+    record = await storeFile(file, id, format);
+    await saveParsed(id, PARSER_VERSION, doc);
+  } catch {
+    return { ok: false, code: "storage" };
   }
 
   recentStore.open({

@@ -113,3 +113,57 @@ describe("chapter headings", () => {
     expect(chapter.content).toContain("Alice was beginning to get very tired");
   });
 });
+
+describe("untrusted books", () => {
+  const remote = `<p>Text.</p><img srcset="https://evil.example/t.png 1x" alt=""><video src="https://evil.example/v.mp4" poster="https://evil.example/p.png"></video><audio src="https://evil.example/a.mp3"></audio><picture><source srcset="https://evil.example/s.png"></picture>`;
+
+  it("never loads anything from the network", async () => {
+    const r = await parseEpub(makeEpub({ "OEBPS/text/two.xhtml": chapter("Two", remote) }));
+    if (!r.ok) throw new Error(r.code);
+    expect(r.book.chapters.map((c) => c.content).join("")).not.toContain("evil.example");
+  });
+
+  it("refuses a book that would inflate far beyond its size", async () => {
+    // 4MB of a repeated character compresses to a few KB: the same shape as a zip bomb, in miniature.
+    const big = "a".repeat(4 * 1024 * 1024);
+    const bomb = makeEpub({ "OEBPS/text/two.xhtml": chapter("Two", `<p>${big}</p>`) });
+    expect(await parseEpub(bomb, 1024 * 1024)).toEqual({ ok: false, code: FILE_ERROR.TOO_LARGE });
+    // The same book under a limit that fits reads normally.
+    expect((await parseEpub(makeEpub(), 1024 * 1024)).ok).toBe(true);
+  });
+
+  it("refuses fixed-layout books however they say so", async () => {
+    const legacy = await parseEpub(makeEpub({}, `<meta name="rendition:layout" content="pre-paginated"/>`));
+    expect(legacy).toEqual({ ok: false, code: FILE_ERROR.FIXED_LAYOUT });
+    const apple = await parseEpub(makeEpub({ "META-INF/com.apple.ibooks.display-options.xml": `<display_options><platform name="*"><option name="fixed-layout">true</option></platform></display_options>` }));
+    expect(apple).toEqual({ ok: false, code: FILE_ERROR.FIXED_LAYOUT });
+  });
+
+  it("refuses a book whose encryption file can't be read", async () => {
+    const r = await parseEpub(makeEpub({ "META-INF/encryption.xml": "<encryption" }));
+    expect(r).toEqual({ ok: false, code: FILE_ERROR.DRM });
+  });
+
+  it("refuses DRM whatever the case of the file name", async () => {
+    const r = await parseEpub(makeEpub({ "META-INF/Rights.xml": "<rights/>" }));
+    expect(r).toEqual({ ok: false, code: FILE_ERROR.DRM });
+  });
+
+  it("keeps auxiliary files (linear=no), so footnote links still work", async () => {
+    const opf = `<package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Notes</dc:title></metadata>
+      <manifest><item id="c1" href="text/one.xhtml" media-type="application/xhtml+xml"/><item id="c2" href="text/two.xhtml" media-type="application/xhtml+xml"/></manifest>
+      <spine><itemref idref="c1"/><itemref idref="c2" linear="no"/></spine></package>`;
+    const r = await parseEpub(makeEpub({ "OEBPS/book.opf": opf }));
+    if (!r.ok) throw new Error(r.code);
+    expect(r.book.chapters).toHaveLength(2);
+    expect(r.book.chapters[0].content).toContain('href="#user-content-part"');
+  });
+
+  it("shows an SVG cover image and drops the empty page it sat on", async () => {
+    const svgCover = chapter("Cover", `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><image width="10" height="10" xlink:href="../images/a.gif"/></svg>`);
+    const r = await parseEpub(makeEpub({ "OEBPS/text/one.xhtml": svgCover }));
+    if (!r.ok) throw new Error(r.code);
+    expect(r.book.chapters[0].content).toContain("data:image/gif;base64,");
+    expect(r.book.chapters[0].content).toMatch(/xlink:href="data:|href="data:/);
+  });
+});

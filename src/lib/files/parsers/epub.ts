@@ -1,7 +1,7 @@
 import DOMPurify from "dompurify";
 import { unzip } from "fflate";
 import { WORDS_PER_MINUTE } from "@/constants/extract";
-import { EPUB_IMAGE_BUDGET_BYTES, EPUB_MAX_IMAGE_BYTES, FILE_ERROR } from "@/constants/files";
+import { EPUB_IMAGE_BUDGET_BYTES, EPUB_MAX_IMAGE_BYTES, EPUB_MAX_UNZIPPED_BYTES, FILE_ERROR } from "@/constants/files";
 import { toChapter } from "@/lib/files/split-chapters";
 import { hardenUrls } from "@/lib/harden-urls";
 import { sanitizeToDom } from "@/lib/sanitize";
@@ -25,23 +25,68 @@ function resolvePath(from: string, href: string): string {
   return base.join("/");
 }
 
-function readZip(bytes: Uint8Array): Promise<Entries> {
+const TOO_LARGE_MESSAGE = "openread: book inflates too far";
+
+class TooLarge extends Error {
+  constructor() {
+    super(TOO_LARGE_MESSAGE);
+  }
+}
+
+/** Reads the zip, refusing a book that inflates past `maxBytes` (a zip bomb). */
+export function readZip(bytes: Uint8Array, maxBytes = EPUB_MAX_UNZIPPED_BYTES): Promise<Entries> {
+  let total = 0;
   return new Promise((resolve, reject) => {
     // Fonts, styles and scripts are never used: the reader supplies its own typography.
-    unzip(bytes, { filter: (f) => !/\.(otf|ttf|woff2?|css|js)$/i.test(f.name) }, (err, entries) =>
-      err ? reject(err) : resolve(entries),
+    unzip(
+      bytes,
+      {
+        filter: (f) => {
+          if (/\.(otf|ttf|woff2?|css|js)$/i.test(f.name)) return false;
+          total += f.originalSize;
+          // A zip bomb inflates far beyond the file's own size; stop reading it.
+          if (total > maxBytes) throw new TooLarge();
+          return true;
+        },
+      },
+      (err, entries) => (err ? reject(err) : resolve(entries)),
     );
   });
 }
 
+const findEntry = (entries: Entries, name: string) =>
+  Object.keys(entries).find((key) => key.toLowerCase() === name.toLowerCase());
+
 /** Adobe, Apple and Readium mark protected books; font obfuscation alone is not DRM. */
 function drmCode(entries: Entries): FileErrorCode | null {
-  if (entries["META-INF/rights.xml"] || entries["META-INF/sinf.xml"] || entries["META-INF/license.lcpl"]) return FILE_ERROR.DRM;
-  const encryption = entries["META-INF/encryption.xml"];
-  if (!encryption) return null;
-  const algorithms = [...xml(text(encryption)).querySelectorAll("EncryptionMethod")].map((m) => m.getAttribute("Algorithm") ?? "");
+  for (const name of ["META-INF/rights.xml", "META-INF/sinf.xml", "META-INF/license.lcpl"]) {
+    if (findEntry(entries, name)) return FILE_ERROR.DRM;
+  }
+  const key = findEntry(entries, "META-INF/encryption.xml");
+  if (!key) return null;
+  const doc = xml(text(entries[key]));
+  // Unreadable or unrecognised: assume it protects something rather than show scrambled text.
+  if (doc.querySelector("parsererror")) return FILE_ERROR.DRM;
+  const methods = [...doc.getElementsByTagName("*")].filter((el) => el.localName === "EncryptionMethod");
+  if (methods.length === 0) return FILE_ERROR.DRM;
   const obfuscation = ["http://www.idpf.org/2008/embedding", "http://ns.adobe.com/pdf/enc#RC"];
-  return algorithms.some((a) => a && !obfuscation.includes(a)) ? FILE_ERROR.DRM : null;
+  return methods.some((m) => {
+    const algorithm = m.getAttribute("Algorithm") ?? "";
+    return algorithm && !obfuscation.includes(algorithm);
+  })
+    ? FILE_ERROR.DRM
+    : null;
+}
+
+/** Pages with a fixed size (comics, picture books) can't be reflowed into a reading column. */
+function isFixedLayout(entries: Entries, opf: Document): boolean {
+  const metas = [...opf.querySelectorAll("meta")];
+  if (metas.some((m) => m.getAttribute("property") === "rendition:layout" && m.textContent?.trim() === "pre-paginated")) return true;
+  if (metas.some((m) => m.getAttribute("name") === "rendition:layout" && m.getAttribute("content")?.trim() === "pre-paginated")) return true;
+  const itemrefs = [...opf.querySelectorAll("spine > itemref")];
+  if (itemrefs.length > 0 && itemrefs.every((ref) => (ref.getAttribute("properties") ?? "").includes("rendition:layout-pre-paginated"))) return true;
+  const apple = findEntry(entries, "META-INF/com.apple.ibooks.display-options.xml");
+  return !!apple && /fixed-layout[^>]*>\s*true/i.test(text(entries[apple]));
 }
 
 const IMAGE_TYPES: Readonly<Record<string, string>> = {
@@ -114,20 +159,27 @@ function tocFromNcx(doc: Document, ncxPath: string, chapterOf: (path: string) =>
  * NCX becomes the contents, images are inlined within a budget, and links between files become
  * in-book links. Styles and fonts are dropped; the reader supplies its own typography.
  */
-export async function parseEpub(file: Blob): Promise<EpubResult> {
-  const entries = await readZip(new Uint8Array(await file.arrayBuffer()));
+export async function parseEpub(file: Blob, maxUnzippedBytes = EPUB_MAX_UNZIPPED_BYTES): Promise<EpubResult> {
+  let entries: Entries;
+  try {
+    entries = await readZip(new Uint8Array(await file.arrayBuffer()), maxUnzippedBytes);
+  } catch (e) {
+    // fflate reports the filter's error as its own; the message identifies it.
+    if (e instanceof TooLarge || String((e as Error)?.message) === TOO_LARGE_MESSAGE) return { ok: false, code: FILE_ERROR.TOO_LARGE };
+    throw e;
+  }
 
   const drm = drmCode(entries);
   if (drm) return { ok: false, code: drm };
 
-  const container = entries["META-INF/container.xml"];
+  const containerKey = findEntry(entries, "META-INF/container.xml");
+  const container = containerKey ? entries[containerKey] : undefined;
   if (!container) return { ok: false, code: FILE_ERROR.UNREADABLE };
   const opfPath = xml(text(container)).querySelector("rootfile")?.getAttribute("full-path");
   if (!opfPath || !entries[opfPath]) return { ok: false, code: FILE_ERROR.UNREADABLE };
 
   const opf = xml(text(entries[opfPath]));
-  const layout = [...opf.querySelectorAll("meta")].find((m) => m.getAttribute("property") === "rendition:layout");
-  if (layout?.textContent?.trim() === "pre-paginated") return { ok: false, code: FILE_ERROR.FIXED_LAYOUT };
+  if (isFixedLayout(entries, opf)) return { ok: false, code: FILE_ERROR.FIXED_LAYOUT };
 
   const manifest = new Map<string, { path: string; type: string; properties: string }>();
   for (const item of opf.querySelectorAll("manifest > item")) {
@@ -141,13 +193,17 @@ export async function parseEpub(file: Blob): Promise<EpubResult> {
     });
   }
 
+  // linear="no" marks auxiliary pages (notes, colophon); they stay, so links into them still work.
   const spine = [...opf.querySelectorAll("spine > itemref")]
-    .filter((ref) => ref.getAttribute("linear") !== "no")
     .map((ref) => manifest.get(ref.getAttribute("idref") ?? ""))
     .filter((item): item is NonNullable<typeof item> => !!item && /xhtml|html/.test(item.type));
   if (spine.length === 0) return { ok: false, code: FILE_ERROR.EMPTY };
 
-  const chapterOfPath = new Map(spine.map((item, index) => [item.path, index]));
+  const chapterOfPath = new Map<string, number>();
+  // First entry wins: a file listed twice in the spine should link to its first appearance.
+  spine.forEach((item, index) => {
+    if (!chapterOfPath.has(item.path)) chapterOfPath.set(item.path, index);
+  });
   const budget = { left: EPUB_IMAGE_BUDGET_BYTES };
   const chapters: Chapter[] = [];
   const anchors: Record<string, number> = {};
@@ -160,13 +216,27 @@ export async function parseEpub(file: Blob): Promise<EpubResult> {
     }
     const body = sanitizeToDom(DOMPurify, xml(text(source)).body?.innerHTML ?? text(source));
 
-    for (const img of body.querySelectorAll("img[src], image")) {
-      const src = img.getAttribute("src") ?? img.getAttribute("xlink:href") ?? "";
+    for (const img of body.querySelectorAll("img[src], image, image[href]")) {
+      const src = img.getAttribute("src") || img.getAttribute("xlink:href") || img.getAttribute("href") || "";
       const path = resolvePath(item.path, src);
       const type = [...manifest.values()].find((m) => m.path === path)?.type ?? "";
       const url = imageDataUrl(entries, path, type, budget);
-      if (url) img.setAttribute("src", url);
-      else img.remove();
+      if (!url) {
+        img.remove();
+        continue;
+      }
+      // SVG uses href/xlink:href, HTML uses src.
+      img.setAttribute("src", url);
+      if (img.tagName.toLowerCase() === "image") {
+        img.setAttribute("href", url);
+        img.setAttribute("xlink:href", url);
+      }
+    }
+
+    // Anything else that would fetch from the network: a book must not report when it is opened.
+    for (const el of body.querySelectorAll("video, audio, source, track, iframe, [srcset]")) {
+      if (el.hasAttribute("srcset") && el.tagName.toLowerCase() === "img") el.removeAttribute("srcset");
+      else el.remove();
     }
 
     // Links to other files in the book become in-book links the reader can follow.

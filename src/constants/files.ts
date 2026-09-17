@@ -59,6 +59,8 @@ export const FILE_ERROR = {
 /** Images are inlined so a cached book still shows them; big ones are dropped rather than bloat storage. */
 export const EPUB_MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 export const EPUB_IMAGE_BUDGET_BYTES = 24 * 1024 * 1024;
+/** A zip can inflate a thousandfold; stop before a crafted book fills memory. */
+export const EPUB_MAX_UNZIPPED_BYTES = 200 * 1024 * 1024;
 
 /** A document this long (about 50 minutes) with sections of its own reads better as a book. */
 export const BOOK_MIN_WORDS = 12_000;

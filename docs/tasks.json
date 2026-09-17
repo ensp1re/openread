@@ -798,65 +798,67 @@
         "src/lib/extract/*"
       ],
       "review": true,
-      "notes": [],
+      "notes": [
+        "2026-09-17 review fail by security subagent: high: remote media (srcset, video, audio, source) in an EPUB still loads from the network, breaking the files-stay-local promise; medium: no decompressed-size guard (zip bomb), fixed-layout detected in only one of four forms, SVG <image> covers lost leaving an empty chapter, linear=no items dropped with their footnotes; low: DRM check fails open on unparseable encryption.xml, case-sensitive META-INF names, file stored before parsing, duplicate spine entries, media-type interpolated into the data URL"
+      ],
       "blockedReason": null,
       "evidence": {
         "version": 2,
         "status": "passed",
-        "at": "2026-09-17T19:45:25Z",
+        "at": "2026-09-17T19:57:45Z",
         "checks": [
           {
             "id": "files-unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 0.9,
-            "log": "docs/runs/F009-20260917T194525Z-files-unit.log"
+            "seconds": 1.1,
+            "log": "docs/runs/F009-20260917T195745Z-files-unit.log"
           },
           {
             "id": "files-e2e",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 11.6,
-            "log": "docs/runs/F009-20260917T194525Z-files-e2e.log"
+            "seconds": 11.8,
+            "log": "docs/runs/F009-20260917T195745Z-files-e2e.log"
           },
           {
             "id": "lint",
             "outcome": "passed",
             "exit": 0,
             "seconds": 1.4,
-            "log": "docs/runs/F009-20260917T194525Z-lint.log"
+            "log": "docs/runs/F009-20260917T195745Z-lint.log"
           },
           {
             "id": "typecheck",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 1.1,
-            "log": "docs/runs/F009-20260917T194525Z-typecheck.log"
+            "seconds": 0.9,
+            "log": "docs/runs/F009-20260917T195745Z-typecheck.log"
           },
           {
             "id": "unit",
             "outcome": "passed",
             "exit": 0,
-            "seconds": 9.5,
-            "log": "docs/runs/F009-20260917T194525Z-unit.log"
+            "seconds": 9.7,
+            "log": "docs/runs/F009-20260917T195745Z-unit.log"
           },
           {
             "id": "build",
             "outcome": "passed",
             "exit": 0,
             "seconds": 3.0,
-            "log": "docs/runs/F009-20260917T194525Z-build.log"
+            "log": "docs/runs/F009-20260917T195745Z-build.log"
           },
           {
             "id": "keep",
             "outcome": "passed",
             "exit": 0,
             "seconds": 0.0,
-            "log": "docs/runs/F009-20260917T194525Z-keep.log"
+            "log": "docs/runs/F009-20260917T195745Z-keep.log"
           }
         ],
         "taskHash": "b28f3ba56220b860",
-        "filesHash": "af96805acca4375a"
+        "filesHash": "9af4168710671eb9"
       },
       "baseCommit": "2a3c7fcdf2abc93f03f4bdd0662247d822be185b",
       "failedVerifies": 0
