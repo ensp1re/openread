@@ -105,3 +105,19 @@ test("the chapter is announced and focus moves to the text", async ({ page, isMo
   expect(await page.evaluate(() => document.activeElement?.id)).toBe("article");
   await expect(page.locator("[aria-live=polite]")).toContainText("Chapter 1. Chapter 2 of 13.");
 });
+
+test("a contents entry for a section in another chapter lands on that section", async ({ page }) => {
+  await page.goto("/");
+  await page.setInputFiles("input[type=file]", "test/fixtures/parts-book.md");
+  await page.waitForURL(/\/file\/[0-9a-f]{64}/);
+  await page.getByRole("button", { name: "Start reading" }).click();
+  await page.getByRole("button", { name: "Contents" }).click();
+  await contents(page).getByRole("button", { name: "Part 3 Section 2" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Part 3" })).toBeVisible();
+  const offset = await page.evaluate(() => {
+    const heading = [...document.querySelectorAll(".prose h2")].find((h) => h.textContent?.includes("Part 3 Section 2"));
+    return heading ? heading.getBoundingClientRect().top : null;
+  });
+  expect(offset).not.toBeNull();
+  expect(Math.abs(offset!)).toBeLessThan(120); // the section is at the top of the screen, not scrolled past
+});

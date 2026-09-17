@@ -10,7 +10,7 @@ export function parseHtml(html: string, source: DocumentSource): ParsedContent {
   const body = parsed?.content && (parsed.textContent ?? "").trim().length > 200 ? parsed.content : (doc.body?.innerHTML ?? "");
   // "Saved page — Example" → "Saved page", as for extracted URLs.
   const withoutSite = splitSiteSuffix(
-    (parsed?.title || title || source.name).trim(),
+    (parsed?.title || title || "").trim(),
     [parsed?.siteName, source.name.replace(/\.[a-z]+$/i, "")],
     doc.querySelector("h1")?.textContent,
   );

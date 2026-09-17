@@ -71,7 +71,7 @@ describe("review fixes", () => {
     const md = "Just a paragraph, with no heading at all, long enough to be read as content.";
     const r = await parseFile(new Blob([md]) as unknown as globalThis.Blob, source("plain.md", FILE_FORMAT.MARKDOWN));
     if (!r.ok || r.doc.kind !== "article") throw new Error("parse failed");
-    expect(r.doc.article.title).toBe("plain.md");
+    expect(r.doc.article.title).toBe("plain");
   });
 
   it("reads files saved in an older encoding, not only UTF-8", async () => {

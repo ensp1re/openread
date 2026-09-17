@@ -24,16 +24,23 @@ export function BookReader({ book, chapter, onChapterChange, recent, showTitlePa
     [book.wordCount, wordsBefore, current.wordCount],
   );
 
+  // Where to scroll once the chapter this anchor lives in has rendered.
+  const pendingAnchor = useRef<string | undefined>(undefined);
+
   const go = useCallback(
     (next: number, anchor?: string) => {
       if (next < 0 || next >= book.chapters.length) return;
       setContentsOpen(false);
+      if (next === current.index) {
+        if (anchor) document.getElementById(anchor)?.scrollIntoView();
+        else window.scrollTo(0, 0);
+        return;
+      }
+      pendingAnchor.current = anchor;
       onChapterChange(next);
       window.scrollTo(0, 0);
-      // A contents entry for a section inside the chapter: scroll to it once the chapter is on screen.
-      if (anchor) requestAnimationFrame(() => document.getElementById(anchor)?.scrollIntoView());
     },
-    [book.chapters.length, onChapterChange],
+    [book.chapters.length, current.index, onChapterChange],
   );
 
   const onKey = useCallback(
@@ -79,6 +86,10 @@ export function BookReader({ book, chapter, onChapterChange, recent, showTitlePa
       return;
     }
     document.getElementById("article")?.focus({ preventScroll: true });
+    // The chapter is on screen now, so a section or footnote we were sent to can be reached.
+    const anchor = pendingAnchor.current;
+    pendingAnchor.current = undefined;
+    if (anchor) document.getElementById(anchor)?.scrollIntoView();
     setAnnouncement(`${current.title}. Chapter ${current.index + 1} of ${book.chapters.length}.`);
     // Record the chapter straight away, so a book read without scrolling doesn't show its title page
     // again. Only the chapter: the fraction saved for it must survive leaving and coming back.
@@ -96,9 +107,9 @@ export function BookReader({ book, chapter, onChapterChange, recent, showTitlePa
       const target = book.anchors[id];
       if (target === undefined || target === current.index) return;
       e.preventDefault();
+      pendingAnchor.current = id;
       onChapterChange(target);
-      // The chapter renders first; then scroll to the anchor.
-      requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView());
+      window.scrollTo(0, 0);
     };
     el.addEventListener("click", onClick);
     return () => el.removeEventListener("click", onClick);

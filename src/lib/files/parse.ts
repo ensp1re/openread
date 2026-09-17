@@ -14,11 +14,13 @@ export { PARSER_VERSION };
 /** Files carry no Content-Type, so the bytes and any meta charset decide (Windows "Save as" is often not UTF-8). */
 const decode = (buffer: ArrayBuffer) => decodeHtml(new Uint8Array(buffer), "");
 
+const nameWithoutExtension = (name: string) => name.replace(/\.[^.]+$/, "");
+
 function toDocument(content: ParsedContent, source: DocumentSource): ReadableDoc {
   // No document address: relative URLs are dropped rather than resolved against this app.
   const body = sanitizeToDom(DOMPurify, content.html);
   hardenUrls(body, null);
-  const title = content.title.trim() || source.name;
+  const title = content.title.trim() || nameWithoutExtension(source.name);
   // splitChapters moves the body's nodes into chapters, so keep the whole document first.
   const html = body.innerHTML;
   const text = body.textContent ?? "";
@@ -47,7 +49,7 @@ function toArticle(content: ParsedContent, source: DocumentSource, html: string,
   const words = text.split(/\s+/).filter(Boolean).length;
   return {
     url: null,
-    title: content.title.trim() || source.name,
+    title: content.title.trim() || nameWithoutExtension(source.name),
     dek: null,
     byline: content.author ?? null,
     siteName: null,
@@ -67,12 +69,12 @@ export async function parseFile(file: Blob, source: DocumentSource): Promise<Par
     switch (source.format) {
       case FILE_FORMAT.TEXT: {
         const { parseText } = await import("./parsers/text");
-        content = parseText(decode(await file.arrayBuffer()), source);
+        content = parseText(decode(await file.arrayBuffer()));
         break;
       }
       case FILE_FORMAT.MARKDOWN: {
         const { parseMarkdown } = await import("./parsers/markdown");
-        content = parseMarkdown(decode(await file.arrayBuffer()), source);
+        content = parseMarkdown(decode(await file.arrayBuffer()));
         break;
       }
       case FILE_FORMAT.HTML: {

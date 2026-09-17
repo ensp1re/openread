@@ -93,6 +93,14 @@ describe("wrapped documents and parts", () => {
     expect(chapters.map((c) => c.title)).toEqual(["One", "Two"]);
   });
 
+  it("doesn't turn a book's own title into an empty first chapter", async () => {
+    const parts = Array.from({ length: 3 }, (_, i) => `<h1>Part ${i + 1}</h1>${`<p>${"word ".repeat(150)}</p>`.repeat(30)}`).join("");
+    const html = `<!doctype html><html><head><title>The Grand Title</title></head><body><article><h1>The Grand Title</h1>${parts}</article></body></html>`;
+    const r = await parseFile(new Blob([html]) as unknown as globalThis.Blob, { name: "grand.html", format: FILE_FORMAT.HTML, size: 5000 });
+    if (!r.ok || r.doc.kind !== "book") throw new Error(`expected a book, got ${r.ok ? r.doc.kind : r.code}`);
+    expect(r.doc.book.chapters.map((c) => c.title)).toEqual(["Part 1", "Part 2", "Part 3"]);
+  });
+
   it("opens a long HTML document with headings as a book", async () => {
     const body = Array.from({ length: 12 }, (_, i) => `<h2>Chapter ${i + 1}</h2>${`<p>${"word ".repeat(120)}</p>`.repeat(10)}`).join("");
     const html = `<!doctype html><html><head><title>An HTML Book</title></head><body><article>${body}</article></body></html>`;
@@ -106,7 +114,7 @@ describe("wrapped documents and parts", () => {
     const md = `${part(1)}${part(2)}${part(3)}`;
     const r = await parseFile(new Blob([md]) as unknown as globalThis.Blob, { name: "parts.md", format: FILE_FORMAT.MARKDOWN, size: 5000 });
     if (!r.ok || r.doc.kind !== "book") throw new Error("expected a book");
-    expect(r.doc.book.title).toBe("parts.md");
+    expect(r.doc.book.title).toBe("parts");
     expect(r.doc.book.chapters.map((c) => c.title)).toEqual(["Part 1", "Part 2", "Part 3"]);
   });
 });

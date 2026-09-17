@@ -72,7 +72,8 @@ export function splitChapters(root: HTMLElement): { chapters: Chapter[]; toc: To
 
   const flush = () => {
     const text = (current.textContent ?? "").trim();
-    if (!text && !title && !current.querySelector("img, figure, table")) return;
+    // A heading with nothing under it (a book title above its parts) is not a chapter of its own.
+    if (!text && !current.querySelector("img, figure, table")) return;
     const index = chapters.length;
     for (const el of current.querySelectorAll("[id]")) anchors[el.id] = index;
     chapters.push(toChapter(index, title || (index === 0 ? "Beginning" : `Chapter ${index + 1}`), current.innerHTML, text));
