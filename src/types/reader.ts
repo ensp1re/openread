@@ -1,4 +1,6 @@
+import type { ReactNode, RefObject } from "react";
 import type { Article } from "@/types/article";
+import type { Book } from "@/types/document";
 import type { RecentSeed } from "@/types/library";
 import type { Preferences } from "@/types/preferences";
 
@@ -6,6 +8,49 @@ export interface ReaderProps {
   readonly article: Article;
   /** Lists the article under Recent and keys its saved position; without it the URL is the key. */
   readonly recent?: RecentSeed;
+}
+
+export interface ReaderChromeOptions {
+  /** URL or `file:<id>`; also the Recent id. */
+  readonly positionKey: string | null;
+  readonly recent?: RecentSeed;
+  /** Minutes for what is on screen: the article, or the current chapter. */
+  readonly readingMinutes: number;
+  readonly contentRef: RefObject<HTMLElement | null>;
+  readonly chapter?: number;
+  /** Turns progress through the current chapter into progress through the whole book. */
+  readonly bookProgress?: (fraction: number) => number;
+  /** Keys the reader handles itself; return true when the key was used. */
+  readonly onKey?: (key: string) => boolean;
+}
+
+export type ReaderChromeState = ReturnType<typeof import("@/components/reader/use-reader-chrome").useReaderChrome>;
+
+export interface ReaderChromeProps {
+  readonly chrome: ReaderChromeState;
+  readonly showProgress?: boolean;
+  /** Right of the bar, e.g. "8 min left". */
+  readonly status?: ReactNode;
+  /** Left of the bar, next to the wordmark, e.g. the Contents button. */
+  readonly leading?: ReactNode;
+  readonly children: ReactNode;
+}
+
+export interface BookReaderProps {
+  readonly book: Book;
+  readonly chapter: number;
+  readonly onChapterChange: (chapter: number) => void;
+  readonly recent: RecentSeed;
+  /** Shown before the first chapter, the first time a book is opened. */
+  readonly showTitlePage: boolean;
+  readonly onStart: () => void;
+}
+
+export interface ContentsDrawerProps {
+  readonly book: Book;
+  readonly chapter: number;
+  readonly onSelect: (chapter: number) => void;
+  readonly onClose: () => void;
 }
 
 export interface SettingsPanelProps {

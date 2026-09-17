@@ -23,6 +23,8 @@ export interface ParsedContent {
 export interface TocEntry {
   readonly title: string;
   readonly chapter: number;
+  /** Heading level, for nested entries. */
+  readonly depth?: number;
   /** Id inside the chapter, for entries that point at a heading. */
   readonly anchor?: string;
   readonly children?: readonly TocEntry[];
@@ -46,6 +48,8 @@ export interface Book {
   readonly chapters: readonly Chapter[];
   readonly wordCount: number;
   readonly readingMinutes: number;
+  /** Element id → the chapter it sits in, so in-book links can jump across chapters. */
+  readonly anchors: Readonly<Record<string, number>>;
 }
 
 export type ReadableDoc =

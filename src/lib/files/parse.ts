@@ -1,23 +1,50 @@
 import DOMPurify from "dompurify";
 import { decodeHtml } from "@/lib/decode";
 import { hardenUrls } from "@/lib/harden-urls";
+import { isBook } from "@/lib/files/classify";
+import { splitChapters } from "@/lib/files/split-chapters";
 import { sanitizeToDom } from "@/lib/sanitize";
 import { FILE_ERROR, FILE_FORMAT, PARSER_VERSION } from "@/constants/files";
 import { WORDS_PER_MINUTE } from "@/constants/extract";
 import type { Article } from "@/types/article";
-import type { DocumentSource, ParseResult, ParsedContent } from "@/types/document";
+import type { DocumentSource, ParseResult, ParsedContent, ReadableDoc } from "@/types/document";
 
 export { PARSER_VERSION };
 
 /** Files carry no Content-Type, so the bytes and any meta charset decide (Windows "Save as" is often not UTF-8). */
 const decode = (buffer: ArrayBuffer) => decodeHtml(new Uint8Array(buffer), "");
 
-function toArticle(content: ParsedContent, source: DocumentSource): Article {
-  const body = sanitizeToDom(DOMPurify, content.html);
+function toDocument(content: ParsedContent, source: DocumentSource): ReadableDoc {
   // No document address: relative URLs are dropped rather than resolved against this app.
+  const body = sanitizeToDom(DOMPurify, content.html);
   hardenUrls(body, null);
+  const title = content.title.trim() || source.name;
+  // splitChapters moves the body's nodes into chapters, so keep the whole document first.
   const html = body.innerHTML;
-  const words = html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
+  const text = body.textContent ?? "";
+  const { chapters, toc, anchors } = splitChapters(body);
+
+  if (!isBook(chapters)) return { kind: "article", article: toArticle(content, source, html, text) };
+
+  const wordCount = chapters.reduce((sum, c) => sum + c.wordCount, 0);
+  return {
+    kind: "book",
+    book: {
+      title,
+      author: content.author ?? null,
+      lang: content.lang ?? null,
+      dir: null,
+      toc,
+      chapters,
+      anchors,
+      wordCount,
+      readingMinutes: Math.max(1, Math.round(wordCount / WORDS_PER_MINUTE)),
+    },
+  };
+}
+
+function toArticle(content: ParsedContent, source: DocumentSource, html: string, text: string): Article {
+  const words = text.split(/\s+/).filter(Boolean).length;
   return {
     url: null,
     title: content.title.trim() || source.name,
@@ -56,9 +83,10 @@ export async function parseFile(file: Blob, source: DocumentSource): Promise<Par
       default:
         return { ok: false, code: FILE_ERROR.UNSUPPORTED };
     }
-    const article = toArticle(content, source);
-    if (article.wordCount === 0) return { ok: false, code: FILE_ERROR.EMPTY };
-    return { ok: true, doc: { kind: "article", article } };
+    const doc = toDocument(content, source);
+    const words = doc.kind === "article" ? doc.article.wordCount : doc.book.wordCount;
+    if (words === 0) return { ok: false, code: FILE_ERROR.EMPTY };
+    return { ok: true, doc };
   } catch {
     return { ok: false, code: FILE_ERROR.UNREADABLE };
   }

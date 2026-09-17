@@ -56,5 +56,9 @@ export const FILE_ERROR = {
   NOT_YET: "not-yet",
 } as const;
 
+/** A document this long (about 50 minutes) with sections of its own reads better as a book. */
+export const BOOK_MIN_WORDS = 12_000;
+export const BOOK_MIN_SECTIONS = 2;
+
 /** Bump when a parser's output changes, so cached documents are parsed again. */
 export const PARSER_VERSION = 1;

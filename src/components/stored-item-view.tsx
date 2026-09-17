@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { BookReader } from "@/components/book/book-reader";
+import { readPosition } from "@/lib/library/position";
 import { FILE_ERROR_MESSAGE } from "@/constants/errors";
 import { PARSER_VERSION } from "@/constants/files";
 import { RECENT_KIND } from "@/constants/library";
@@ -34,7 +37,15 @@ async function openStoredFile(record: StoredFileRecord): Promise<LoadState> {
 
 /** Opens something saved in this browser: pasted text now, files later. */
 export function StoredItemView({ id }: StoredItemViewProps) {
+  const router = useRouter();
+  const params = useSearchParams();
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const chapterParam = params.get("chapter");
+
+  const setChapter = useCallback(
+    (chapter: number) => router.push(`/file/${id}?chapter=${chapter}`, { scroll: false }),
+    [id, router],
+  );
 
   useEffect(() => {
     let alive = true;
@@ -106,18 +117,26 @@ export function StoredItemView({ id }: StoredItemViewProps) {
 
   if (state.status === "file") {
     const { record, doc } = state;
-    const article = doc.kind === "article" ? doc.article : null;
-    if (!article) return null;
+    const recent = {
+      id: storedRecentId(record.id),
+      kind: RECENT_KIND.FILE,
+      title: doc.kind === "article" ? doc.article.title : doc.book.title,
+      source: fileSourceLabel(record),
+      href: itemHref(record.id),
+    };
+    if (doc.kind === "article") return <Reader article={doc.article} recent={recent} />;
+
+    // No chapter in the URL: carry on where the book was left, or show its title page.
+    const saved = readPosition(recent.id);
+    const chapter = chapterParam !== null ? Number(chapterParam) || 0 : (saved?.chapter ?? 0);
     return (
-      <Reader
-        article={article}
-        recent={{
-          id: storedRecentId(record.id),
-          kind: RECENT_KIND.FILE,
-          title: article.title,
-          source: fileSourceLabel(record),
-          href: itemHref(record.id),
-        }}
+      <BookReader
+        book={doc.book}
+        chapter={Math.min(Math.max(0, chapter), doc.book.chapters.length - 1)}
+        onChapterChange={setChapter}
+        recent={recent}
+        showTitlePage={chapterParam === null && !saved}
+        onStart={() => setChapter(0)}
       />
     );
   }

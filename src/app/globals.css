@@ -353,6 +353,201 @@ html[data-progress="false"] :is(.progress-track, .topbar-status) {
   background: var(--code-bg);
 }
 
+/* Book reader: contents, chapter navigation and the title page */
+
+.topbar-start {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.contents-toggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 0.5rem;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--muted);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.contents-toggle:hover,
+.contents-toggle[aria-expanded="true"] {
+  color: var(--text);
+  background: var(--code-bg);
+}
+
+.contents-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+}
+
+.contents-panel {
+  position: fixed;
+  top: var(--bar-height);
+  left: max(0.75rem, calc(var(--gutter) - 0.75rem));
+  z-index: 21;
+  width: 21rem;
+  max-height: calc(100dvh - var(--bar-height) - 1rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem 0.75rem 1rem 1.125rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  font-family: var(--font-ui);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.contents-title {
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.contents-list li[data-depth="3"] button {
+  padding-left: 1rem;
+}
+
+.contents-list button {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--text);
+  text-align: left;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.contents-list button:hover {
+  background: var(--code-bg);
+}
+
+.contents-list button[aria-current="true"] {
+  font-weight: 600;
+  background: var(--code-bg);
+}
+
+.contents-entry-minutes {
+  flex: none;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 599px), (max-height: 500px) and (pointer: coarse) {
+  .contents-panel {
+    top: auto;
+    inset: auto 0 0;
+    width: auto;
+    max-height: 80dvh;
+    padding: 1rem var(--gutter) calc(1rem + env(safe-area-inset-bottom));
+    border-width: 1px 0 0;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 24px rgb(0 0 0 / 0.08);
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+}
+
+.chapter-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  max-width: var(--measure);
+  margin: 3em auto 0;
+  padding-top: 1em;
+  border-top: 1px solid var(--rule);
+  font-size: var(--body-size);
+}
+
+.chapter-link {
+  display: grid;
+  gap: 0.15rem;
+  max-width: 48%;
+  padding: 0.5rem 0;
+  font-family: var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+}
+
+.chapter-next {
+  margin-left: auto;
+  text-align: right;
+}
+
+.chapter-link-label {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.chapter-link-title {
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  color: var(--text);
+}
+
+.chapter-link:hover .chapter-link-title {
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 0.2em;
+}
+
+.chapter-end {
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.title-page {
+  max-width: var(--measure);
+  margin: 12vh auto 0;
+  font-size: var(--body-size);
+}
+
+.title-page-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+.primary-button {
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  font-weight: 550;
+  color: var(--bg);
+  background: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.primary-button:hover {
+  background: var(--heading);
+}
+
 /* Settings panel: anchored under the bar on wide screens, a bottom sheet on phones */
 
 .settings-panel {

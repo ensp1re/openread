@@ -569,7 +569,7 @@
       "dependsOn": [
         "F006"
       ],
-      "state": "verified",
+      "state": "passing",
       "verification": [
         "files-e2e",
         "files-unit",
@@ -586,7 +586,8 @@
       "notes": [
         "2026-09-17 Sanitizer config and the title-suffix helper moved out of src/lib/extract/parse-article.ts into src/lib/sanitize.ts and src/lib/title.ts, so files, pasted text and articles share one config. Extraction behaviour unchanged: extract unit + live checks still pass. Keep list narrowed to the fetching path.",
         "2026-09-17 review fail by security subagent: medium: Markdown title/H1 taken from inside a code fence (# comment wins, real H1 deleted); low: 150MB text file ~1.5GB heap; EPUB/PDF/DOCX stored then deleted with contradictory message; failed re-parse deletes an already-stored file; files decoded as UTF-8 only; files skip link/URL hardening (relative URLs resolve against our origin, #fragment links break); EXTENSION_FORMAT inherited keys; drag-leave guard and stuck overlay; no CSP",
-        "2026-09-17 decodeHtml also moved out of src/lib/extract/fetch-page.ts into src/lib/decode.ts so opened files decode like fetched pages; fetching behaviour unchanged (fetch-page unit tests and the live check pass)."
+        "2026-09-17 decodeHtml also moved out of src/lib/extract/fetch-page.ts into src/lib/decode.ts so opened files decode like fetched pages; fetching behaviour unchanged (fetch-page unit tests and the live check pass).",
+        "2026-09-17 review pass by security subagent (2 rounds): Round 1 FAIL (markdown title from code fence; UTF-8-only decoding; files skipped URL hardening; store-then-delete for unsupported formats; failed re-parse deleted stored file; inherited extension keys; no CSP). Round 2 PASS at 548cc76: mXSS/javascript:/data: payload set re-run in Chromium against the real pipeline, script never executed; relative URLs dropped, fragments matched, rel added. Its two remaining lows fixed after (media schemes, multi-file drop)."
       ],
       "blockedReason": null,
       "evidence": {
@@ -645,7 +646,22 @@
           }
         ],
         "taskHash": "3e14de4dd7c7290a",
-        "filesHash": "e7ca69121b7eaafe"
+        "filesHash": "e7ca69121b7eaafe",
+        "review": {
+          "result": "pass",
+          "by": "security subagent (2 rounds)",
+          "summary": "Round 1 FAIL (markdown title from code fence; UTF-8-only decoding; files skipped URL hardening; store-then-delete for unsupported formats; failed re-parse deleted stored file; inherited extension keys; no CSP). Round 2 PASS at 548cc76: mXSS/javascript:/data: payload set re-run in Chromium against the real pipeline, script never executed; relative URLs dropped, fragments matched, rel added. Its two remaining lows fixed after (media schemes, multi-file drop).",
+          "at": "2026-09-17T18:43:04Z",
+          "filesHash": "e7ca69121b7eaafe"
+        },
+        "commit": "26b703e",
+        "doneAt": "2026-09-17T18:43:04Z",
+        "proof": {
+          "1": "e2e/files.spec.ts: opens a text file and lists it under Recent; opens Markdown; opens a saved web page",
+          "2": "e2e/files.spec.ts: the same file opened twice is one Recent entry (SHA-256 id)",
+          "3": "e2e/files.spec.ts: an unsupported file is refused and nothing is stored; src/lib/library/files.ts size and format checks before storing",
+          "4": "src/lib/files/parse.test.ts: removes scripts, handlers, javascript: links and frames from any file; media URLs test; security review 2 rounds"
+        }
       },
       "baseCommit": "83bec19a61fa634b83a726111530b910636a5ac0",
       "failedVerifies": 0
@@ -663,7 +679,7 @@
       "dependsOn": [
         "F007"
       ],
-      "state": "not_started",
+      "state": "verified",
       "verification": [
         "book-e2e",
         "files-unit"
@@ -677,7 +693,66 @@
       "review": true,
       "notes": [],
       "blockedReason": null,
-      "evidence": null
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-17T18:56:18Z",
+        "checks": [
+          {
+            "id": "book-e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 7.2,
+            "log": "docs/runs/F008-20260917T185618Z-book-e2e.log"
+          },
+          {
+            "id": "files-unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.7,
+            "log": "docs/runs/F008-20260917T185618Z-files-unit.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 2.0,
+            "log": "docs/runs/F008-20260917T185618Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.0,
+            "log": "docs/runs/F008-20260917T185618Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 9.8,
+            "log": "docs/runs/F008-20260917T185618Z-unit.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.1,
+            "log": "docs/runs/F008-20260917T185618Z-build.log"
+          },
+          {
+            "id": "keep",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.0,
+            "log": "docs/runs/F008-20260917T185618Z-keep.log"
+          }
+        ],
+        "taskHash": "8de0a7cfc142b17e",
+        "filesHash": "81463d51eeb3caee"
+      },
+      "baseCommit": "26b703efdf685edcb08a0b000dd3ac68afc80585",
+      "failedVerifies": 0
     },
     {
       "id": "F009",
