@@ -85,3 +85,33 @@ test("removing a file from Recent deletes it from this browser", async ({ page }
   await page.goto(url);
   await expect(page.getByRole("heading", { name: "This item isn’t saved in this browser." })).toBeVisible();
 });
+
+test("opens a real EPUB as a book, with its contents and chapters", async ({ page }) => {
+  await open(page, "alice-epub3.epub");
+  await expect(page.getByRole("heading", { level: 1, name: /Alice/i })).toBeVisible();
+  await expect(page.locator(".title-page")).toContainText("Lewis Carroll");
+  await page.getByRole("button", { name: "Start reading" }).click();
+  await page.getByRole("button", { name: "Contents" }).click();
+  const contents = page.getByRole("dialog", { name: "Contents" });
+  await expect(contents.getByRole("listitem").first()).toBeVisible();
+  await contents.getByRole("button", { name: /Rabbit-Hole/i }).click();
+  await expect(page.locator(".prose")).toContainText(/rabbit/i);
+
+  await page.goto("/");
+  await expect(page.getByRole("region", { name: "Recent" }).getByRole("listitem").filter({ hasText: /Alice/i })).toContainText("EPUB ·");
+});
+
+test("an EPUB with DRM is refused and nothing is stored", async ({ page }) => {
+  await page.goto("/");
+  await page.setInputFiles("input[type=file]", "test/fixtures/drm.epub");
+  await expect(page.locator(".file-error")).toContainText("protected by DRM");
+  expect(await page.evaluate(async () => {
+    const db: IDBDatabase = await new Promise((r) => {
+      const req = indexedDB.open("openread", 1);
+      req.onsuccess = () => r(req.result);
+    });
+    return new Promise((r) => {
+      db.transaction("items", "readonly").objectStore("items").count().onsuccess = (e) => r((e.target as IDBRequest).result);
+    });
+  })).toBe(0);
+});

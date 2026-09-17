@@ -44,6 +44,8 @@ export interface Book {
   readonly author: string | null;
   readonly lang: string | null;
   readonly dir: string | null;
+  /** Inline data URL, when the book has one. */
+  readonly cover?: string | null;
   readonly toc: readonly TocEntry[];
   readonly chapters: readonly Chapter[];
   readonly wordCount: number;

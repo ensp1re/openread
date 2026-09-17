@@ -52,7 +52,8 @@ describe("parseFile", () => {
   });
 
   it("reports formats it can't open yet and files with no text", async () => {
-    expect(await parseFile(fixture("notes.txt"), source("book.epub", FILE_FORMAT.EPUB))).toEqual({ ok: false, code: FILE_ERROR.UNSUPPORTED });
+    expect(await parseFile(fixture("notes.txt"), source("paper.pdf", FILE_FORMAT.PDF))).toEqual({ ok: false, code: FILE_ERROR.UNSUPPORTED });
+    expect(await parseFile(fixture("notes.txt"), source("book.epub", FILE_FORMAT.EPUB))).toEqual({ ok: false, code: FILE_ERROR.UNREADABLE });
     expect(await parseFile(new Blob(["   "]) as unknown as globalThis.Blob, source("empty.txt", FILE_FORMAT.TEXT))).toEqual({ ok: false, code: FILE_ERROR.EMPTY });
   });
 });

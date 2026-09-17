@@ -43,7 +43,7 @@ export const MAX_FILE_BYTES: Readonly<Record<string, number>> = {
 };
 
 /** Formats with a parser today; the rest are offered but answered with "not yet". */
-export const READABLE_FORMATS: readonly string[] = [FILE_FORMAT.TEXT, FILE_FORMAT.MARKDOWN, FILE_FORMAT.HTML];
+export const READABLE_FORMATS: readonly string[] = [FILE_FORMAT.TEXT, FILE_FORMAT.MARKDOWN, FILE_FORMAT.HTML, FILE_FORMAT.EPUB];
 
 export const FILE_ERROR = {
   UNSUPPORTED: "unsupported",
@@ -55,6 +55,10 @@ export const FILE_ERROR = {
   NEEDS_PASSWORD: "needs-password",
   NOT_YET: "not-yet",
 } as const;
+
+/** Images are inlined so a cached book still shows them; big ones are dropped rather than bloat storage. */
+export const EPUB_MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+export const EPUB_IMAGE_BUDGET_BYTES = 24 * 1024 * 1024;
 
 /** A document this long (about 50 minutes) with sections of its own reads better as a book. */
 export const BOOK_MIN_WORDS = 12_000;

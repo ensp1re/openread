@@ -125,6 +125,8 @@ export function BookReader({ book, chapter, onChapterChange, recent, showTitlePa
         <ReaderChrome chrome={chrome} showProgress={false}>
           <main id="article" tabIndex={-1} className="reader-main">
             <div className="title-page">
+              {/* eslint-disable-next-line @next/next/no-img-element -- an inline data URL from the book itself */}
+              {book.cover && <img className="book-cover" src={book.cover} alt="" />}
               <h1 className="article-title">{book.title}</h1>
               {book.author && <p className="article-dek">{book.author}</p>}
               <p className="article-meta">

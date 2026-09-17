@@ -679,7 +679,7 @@
       "dependsOn": [
         "F007"
       ],
-      "state": "verified",
+      "state": "passing",
       "verification": [
         "book-e2e",
         "files-unit"
@@ -694,7 +694,8 @@
       "notes": [
         "2026-09-17 review fail by design subagent: must fix: chapter change moves no focus and announces nothing; ?chapter=2.5 white-screens; top bar overlaps at 375px; chapter counter contradicts the chapter title (off-by-one from front matter); splitChapters drops Part headings and treats h1/h2 as equal so contents is always flat. nice: drawer height on landscape with a mouse, aria-modal, onKey listener churn, file size on the title page, title page reappears when no scroll happened",
         "2026-09-17 review fail by design subagent (2nd): must: contents marks 5 rows current at once; depth-3 entries drop their anchor so sections all open the chapter top; sections repeat the chapter's reading time. regression: saving the chapter on change erased the per-chapter fraction, so Back lands at the top. also: markdown parts book titled 'Part 1'; HTML books never classify as books (wrapper div); faint depth indent",
-        "2026-09-17 review fail by design subagent (3rd): must: a contents entry for a section in another chapter lands at the chapter top (one rAF is too early after a chapter change); also: a parts book is titled by its file name including the extension; an HTML book's leading title becomes an empty first chapter"
+        "2026-09-17 review fail by design subagent (3rd): must: a contents entry for a section in another chapter lands at the chapter top (one rAF is too early after a chapter change); also: a parts book is titled by its file name including the extension; an HTML book's leading title becomes an empty first chapter",
+        "2026-09-17 review pass by design subagent (4 rounds): Round 1 FAIL (no focus/announcement on chapter change, fractional chapter crash, phone bar overlap, wrong counter, parts lost). Round 2 FAIL (contents marked 5 rows current, sections dropped anchors and repeated times, per-chapter position regression). Round 3 FAIL (cross-chapter section landed at top; filename title; empty first chapter). Round 4 PASS at 590b76d with screenshots: cross-chapter and same-chapter sections land at y=76, in-book links too, contents reads as an outline. Its last nit (HTML title chapter) fixed after."
       ],
       "blockedReason": null,
       "evidence": {
@@ -753,7 +754,23 @@
           }
         ],
         "taskHash": "8de0a7cfc142b17e",
-        "filesHash": "0e726c0cc9290317"
+        "filesHash": "0e726c0cc9290317",
+        "review": {
+          "result": "pass",
+          "by": "design subagent (4 rounds)",
+          "summary": "Round 1 FAIL (no focus/announcement on chapter change, fractional chapter crash, phone bar overlap, wrong counter, parts lost). Round 2 FAIL (contents marked 5 rows current, sections dropped anchors and repeated times, per-chapter position regression). Round 3 FAIL (cross-chapter section landed at top; filename title; empty first chapter). Round 4 PASS at 590b76d with screenshots: cross-chapter and same-chapter sections land at y=76, in-book links too, contents reads as an outline. Its last nit (HTML title chapter) fixed after.",
+          "at": "2026-09-17T19:40:13Z",
+          "filesHash": "0e726c0cc9290317"
+        },
+        "commit": "2a3c7fc",
+        "doneAt": "2026-09-17T19:40:13Z",
+        "proof": {
+          "1": "e2e/book.spec.ts: a long document opens on its title page and starts at the first chapter",
+          "2": "e2e/book.spec.ts: Contents lists the chapters and opens the one chosen; a contents entry for a section in another chapter lands on that section",
+          "3": "e2e/book.spec.ts: Next and Previous move between chapters; keyboard c, ] and [",
+          "4": "e2e/book.spec.ts: a book reopens from Recent at the chapter and place it was left; opened without scrolling comes back to its chapter",
+          "5": "e2e/book.spec.ts: an in-book link jumps to the chapter that holds the target"
+        }
       },
       "baseCommit": "26b703efdf685edcb08a0b000dd3ac68afc80585",
       "failedVerifies": 0
@@ -769,7 +786,7 @@
       "dependsOn": [
         "F008"
       ],
-      "state": "not_started",
+      "state": "verified",
       "verification": [
         "files-unit",
         "files-e2e"
@@ -783,7 +800,66 @@
       "review": true,
       "notes": [],
       "blockedReason": null,
-      "evidence": null
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-17T19:45:25Z",
+        "checks": [
+          {
+            "id": "files-unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.9,
+            "log": "docs/runs/F009-20260917T194525Z-files-unit.log"
+          },
+          {
+            "id": "files-e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 11.6,
+            "log": "docs/runs/F009-20260917T194525Z-files-e2e.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.4,
+            "log": "docs/runs/F009-20260917T194525Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.1,
+            "log": "docs/runs/F009-20260917T194525Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 9.5,
+            "log": "docs/runs/F009-20260917T194525Z-unit.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.0,
+            "log": "docs/runs/F009-20260917T194525Z-build.log"
+          },
+          {
+            "id": "keep",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.0,
+            "log": "docs/runs/F009-20260917T194525Z-keep.log"
+          }
+        ],
+        "taskHash": "b28f3ba56220b860",
+        "filesHash": "af96805acca4375a"
+      },
+      "baseCommit": "2a3c7fcdf2abc93f03f4bdd0662247d822be185b",
+      "failedVerifies": 0
     },
     {
       "id": "F010",

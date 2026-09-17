@@ -82,6 +82,11 @@ export async function parseFile(file: Blob, source: DocumentSource): Promise<Par
         content = parseHtml(decode(await file.arrayBuffer()), source);
         break;
       }
+      case FILE_FORMAT.EPUB: {
+        const { parseEpub } = await import("./parsers/epub");
+        const result = await parseEpub(file);
+        return result.ok ? { ok: true, doc: { kind: "book", book: result.book } } : result;
+      }
       default:
         return { ok: false, code: FILE_ERROR.UNSUPPORTED };
     }

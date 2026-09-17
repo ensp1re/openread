@@ -540,6 +540,16 @@ html[data-progress="false"] :is(.progress-track, .topbar-status) {
   font-size: var(--body-size);
 }
 
+.book-cover {
+  display: block;
+  width: auto;
+  max-width: min(14rem, 45%);
+  max-height: 40vh;
+  margin-bottom: 1.5rem;
+  border-radius: 2px;
+  box-shadow: var(--shadow);
+}
+
 .title-page-actions {
   display: flex;
   align-items: center;
