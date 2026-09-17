@@ -1079,7 +1079,7 @@
       "dependsOn": [
         "F011"
       ],
-      "state": "verified",
+      "state": "passing",
       "verification": [
         "a11y",
         "bundle"
@@ -1141,16 +1141,22 @@
           }
         ],
         "taskHash": "e763adbf1ce670a8",
-        "filesHash": "02f0983af41decef"
+        "filesHash": "02f0983af41decef",
+        "commit": "b14fdfa",
+        "doneAt": "2026-09-17T21:05:48Z",
+        "proof": {
+          "1": "e2e/accessibility.spec.ts: home with Recent, the book reader with Contents, and the PDF views, in all four themes (desktop + mobile)",
+          "2": "bundle check: scripts/check-home-js.mjs reports +6.5 KB gzip against the 15 KB budget in docs/home-js-budget.json"
+        }
       },
       "baseCommit": "61863adb69ea4c4cd8140086f80137485cc294d8",
       "failedVerifies": 0
     }
   ],
   "lastWrapup": {
-    "at": "2026-09-16T22:39:09Z",
+    "at": "2026-09-17T21:06:42Z",
     "clean": true,
     "problems": [],
-    "note": "Bootstrap and first release done: F001-F005 passing (security review 4 rounds, design review 2 rounds). Next: deploy (Q-1), then later-scope items in docs/PROJECT.md."
+    "note": "Books, documents and Recent shipped: F006-F012 passing (security reviews on file intake, EPUB and the extractor; design reviews on Recent, the book reader and PDF). Next: push to main, which deploys to Vercel, then smoke-test the live site."
   }
 }
