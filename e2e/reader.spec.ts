@@ -23,6 +23,15 @@ test("home page submits the link to the reader", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Paste the article text" })).toBeVisible();
 });
 
+test("the address bar shows the article's own address", async ({ page }) => {
+  await page.goto("/");
+  const input = page.getByLabel("Article link");
+  await input.fill("https://www.localhost/private/page.html");
+  await input.press("Enter");
+  await expect(page).toHaveURL("/read/localhost/private/page.html");
+  await expect(page.getByRole("heading", { name: "Couldn’t extract this article." })).toBeVisible();
+});
+
 test("pasted text opens in the reader with reading time", async ({ page }) => {
   await openPasted(page);
   await expect(page.locator(".prose p")).toHaveCount(30);

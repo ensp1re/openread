@@ -59,11 +59,26 @@ export function isTooComplex(html: string): boolean {
   return false;
 }
 
+/**
+ * A link can be written without "www." — as the reader's own address always is — while only the www
+ * host exists. One retry there costs a lookup and saves an error page.
+ */
 export async function fetchPage(input: string): Promise<FetchPageResult> {
+  const signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
+  const result = await fetchOnce(input, signal);
+  if (result.ok || result.code !== EXTRACT_ERROR.FETCH_FAILED) return result;
+
+  const url = parsePublicUrl(input);
+  if (!url || url.hostname.startsWith("www.") || url.hostname.split(".").length !== 2) return result;
+  url.hostname = `www.${url.hostname}`;
+  const retry = await fetchOnce(url.href, signal);
+  return retry.ok ? retry : result;
+}
+
+async function fetchOnce(input: string, signal: AbortSignal): Promise<FetchPageResult> {
   let url = parsePublicUrl(input);
   if (!url) return { ok: false, code: EXTRACT_ERROR.INVALID_URL };
 
-  const signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
   try {
     for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
       const host = url.hostname.replace(/^\[|\]$/g, "");

@@ -4,6 +4,9 @@ import { expect, test } from "@playwright/test";
 const TEXT = Array.from({ length: 8 }, (_, i) => `Paragraph ${i + 1} with a [link](x) and enough words to read.`).join("\n\n");
 
 async function violations(page: import("@playwright/test").Page) {
+  // A page mid-navigation has no title yet; measure the page that has arrived, not the one leaving.
+  await expect(page).toHaveTitle(/.+/);
+  await expect(page.locator("main").first()).toBeVisible();
   // Measure once the webfont is in place: a swapping font briefly changes what axe samples.
   await page.evaluate(() => document.fonts.ready);
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
@@ -25,6 +28,9 @@ for (const theme of ["light", "sepia", "soft", "dark"]) {
     await page.goto("/paste");
     await page.getByLabel("Article text").fill(TEXT);
     await page.getByRole("button", { name: "Read" }).click();
+    // The text is saved and reopened at its own address; wait for that page, not the form's.
+    await expect(page).toHaveURL(/\/file\//);
+    await expect(page.locator(".prose p").first()).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     expect(await violations(page)).toEqual([]);
     await page.getByRole("button", { name: "Reading settings" }).click();

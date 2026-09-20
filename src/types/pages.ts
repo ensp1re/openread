@@ -15,6 +15,16 @@ export interface ReadPageProps {
   readonly searchParams: Promise<ReadSearchParams>;
 }
 
+export interface ReadPathPageProps {
+  readonly params: Promise<{ path: string[] }>;
+  readonly searchParams: Promise<ReadSearchParams>;
+}
+
+export interface ReadArticleProps {
+  readonly url: string;
+  readonly simple: boolean;
+}
+
 export interface ExtractErrorProps {
   readonly url: string;
   readonly code: ExtractErrorCode;
