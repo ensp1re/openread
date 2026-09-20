@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { EXTRACT_ERROR_MESSAGE, HTTP_STATUS_HINT } from "@/constants/errors";
 import { EXTRACT_ERROR } from "@/constants/extract";
+import { readPath } from "@/lib/read-path";
 import type { ExtractErrorProps } from "@/types/pages";
 import { UrlForm } from "./url-form";
 
@@ -25,14 +26,14 @@ export function ExtractError({ url, code, status, simple }: ExtractErrorProps) {
         <ul className="notice-actions">
           {canOpen && (
             <li>
-              <Link href={`/read?url=${q}${simple ? "&mode=simple" : ""}`} prefetch={false}>
+              <Link href={readPath(url, simple)} prefetch={false}>
                 Try again
               </Link>
             </li>
           )}
           {canOpen && !simple && code === EXTRACT_ERROR.NO_CONTENT && (
             <li>
-              <Link href={`/read?url=${q}&mode=simple`} prefetch={false}>
+              <Link href={readPath(url, true)} prefetch={false}>
                 Try simpler extraction
               </Link>
               <span> — keeps more of the page, including some clutter</span>
