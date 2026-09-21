@@ -70,7 +70,7 @@ describe("readQuery", () => {
   });
 
   it("settles: what the redirect sends you to never redirects again", () => {
-    // The same two steps the middleware takes, so a wrong pair here would be a redirect loop.
+    // The same two steps the proxy (src/proxy.ts) takes, so a wrong pair here would be a redirect loop.
     const tidy = (search: string) => {
       const { url, simple } = readQuery(search);
       return url ? readPath(url, simple) : `/read${search}`;

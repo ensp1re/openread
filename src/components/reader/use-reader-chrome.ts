@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { SIZE_OPTIONS, THEME, THEME_OPTIONS } from "@/constants/preferences";
 import { BAR_ALWAYS_VISIBLE_ABOVE_PX, BAR_REVEAL_SCROLL_UP_PX } from "@/constants/reader";
+import { glideBy } from "@/lib/glide";
 import { readPosition, savePosition } from "@/lib/library/position";
 import { recentStore } from "@/lib/library/recent";
 import { preferencesStore, syncThemeColor } from "@/lib/preferences";
@@ -199,10 +200,10 @@ export function useReaderChrome({
           toggleFocus();
           break;
         case "j":
-          window.scrollBy({ top: lineStep });
+          glideBy(lineStep);
           break;
         case "k":
-          window.scrollBy({ top: -lineStep });
+          glideBy(-lineStep);
           break;
         case "n":
           exit();

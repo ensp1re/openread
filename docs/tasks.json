@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "nextId": 13,
+  "nextId": 15,
   "tasks": [
     {
       "id": "F001",
@@ -1150,6 +1150,106 @@
         }
       },
       "baseCommit": "61863adb69ea4c4cd8140086f80137485cc294d8",
+      "failedVerifies": 0
+    },
+    {
+      "id": "F013",
+      "behavior": "Reopening a half-read article or chapter offers a non-modal card to continue at the paragraph where reading stopped, start over, or close",
+      "acceptance": [
+        "Opened in a new tab with a saved place between 3% and 97%, the page opens at the top with a card showing the percentage, when, and the opening words of the paragraph where reading stopped",
+        "Continue brings that paragraph into view and marks it briefly; Start over clears the saved place; Close or scrolling a screen hides the card and the saved place survives until the reader moves on",
+        "Reload, going back, or reopening in the same tab restores the place silently with no card; books offer Start of chapter",
+        "The card passes axe WCAG 2.2 A/AA in all four themes and is reachable by keyboard without stealing focus"
+      ],
+      "dependsOn": [],
+      "state": "not_started",
+      "verification": [
+        "lint",
+        "typecheck",
+        "unit",
+        "recent-e2e",
+        "book-e2e",
+        "a11y"
+      ],
+      "refs": [
+        "R-17"
+      ],
+      "keep": [
+        "src/lib/extract/*",
+        "Recent list behaviour"
+      ],
+      "review": true,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": null
+    },
+    {
+      "id": "F014",
+      "behavior": "j and k scroll the reader smoothly",
+      "acceptance": [
+        "j and k glide three lines instead of jumping; repeated presses add to one continuous glide",
+        "Other scrolling cancels a glide; with reduced motion the step is instant"
+      ],
+      "dependsOn": [],
+      "state": "verified",
+      "verification": [
+        "lint",
+        "typecheck",
+        "unit",
+        "e2e"
+      ],
+      "refs": [
+        "R-18"
+      ],
+      "keep": [],
+      "review": false,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-21T19:12:02Z",
+        "checks": [
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 2.1,
+            "log": "docs/runs/F014-20260921T191202Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.1,
+            "log": "docs/runs/F014-20260921T191202Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 10.7,
+            "log": "docs/runs/F014-20260921T191202Z-unit.log"
+          },
+          {
+            "id": "e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 7.6,
+            "log": "docs/runs/F014-20260921T191202Z-e2e.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.2,
+            "log": "docs/runs/F014-20260921T191202Z-build.log"
+          }
+        ],
+        "taskHash": "024d56835af05b91",
+        "filesHash": "a2136d12132fefa1"
+      },
+      "baseCommit": "64201773086083d688971f4e408df5df097a179e",
       "failedVerifies": 0
     }
   ],
