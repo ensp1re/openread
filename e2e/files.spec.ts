@@ -164,3 +164,22 @@ test("switching between the text and the pages keeps the keyboard in place", asy
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: "View the original pages" })).toBeFocused();
 });
+
+test("coming back from a PDF's pages to its text doesn't ask where to continue", async ({ page }) => {
+  await open(page, "two-column.pdf");
+  // A half-read place, written the way the reader saves it, so the short fixture needn't be scrolled.
+  await page.evaluate(() => {
+    const id = JSON.parse(localStorage.getItem("openread:recent")!)[0].id;
+    localStorage.setItem(`openread:position:${id}`, JSON.stringify({ f: 0.3, c: 0, b: 2, p: 0.4, at: Date.now() }));
+  });
+
+  const tab = await page.context().newPage();
+  await tab.goto(page.url());
+  const card = tab.getByRole("region", { name: "Pick up where you left off?" });
+  await card.getByRole("button", { name: "Not now" }).click();
+  await tab.getByRole("button", { name: "View the original pages" }).click();
+  await tab.getByRole("button", { name: "Back to the text" }).click();
+  await expect(tab.locator(".prose")).toBeVisible();
+  await tab.waitForTimeout(500);
+  await expect(card).toBeHidden();
+});

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ReaderChromeProps } from "@/types/reader";
+import { ResumeCard } from "./resume-card";
 import { SettingsPanel } from "./settings-panel";
 import { ShortcutsDialog } from "./shortcuts-dialog";
 
@@ -22,6 +23,10 @@ export function ReaderChrome({ chrome, showProgress, status, leading, children }
     progressRef,
     settingsButtonRef,
     setPrefs,
+    resume,
+    continueReading,
+    startOver,
+    dismissResume,
   } = chrome;
   const progressVisible = prefs.progress && showProgress !== false && !focusMode;
 
@@ -90,6 +95,9 @@ export function ReaderChrome({ chrome, showProgress, status, leading, children }
           />
         )}
       </header>
+
+      {/* After the bar in reading order, so Tab reaches it before the text; placed at the bottom by CSS. */}
+      {resume && !focusMode && <ResumeCard offer={resume} onContinue={continueReading} onStartOver={startOver} onDismiss={dismissResume} />}
 
       {children}
 

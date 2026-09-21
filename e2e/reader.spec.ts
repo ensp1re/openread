@@ -171,3 +171,62 @@ test.describe("phone in landscape", () => {
     expect(await page.evaluate(() => window.scrollY)).toBe(y);
   });
 });
+
+test.describe("j and k", () => {
+  test.skip(({ isMobile }) => isMobile, "keyboard shortcuts are a desktop feature");
+
+  const lineStep = (page: Page) =>
+    page.locator(".article").evaluate((el) => parseFloat(getComputedStyle(el).lineHeight) * 3);
+  const settled = (page: Page) =>
+    page.evaluate(
+      () =>
+        new Promise<number>((resolve) => {
+          let last = -1;
+          const check = () => (window.scrollY === last ? resolve(last) : ((last = window.scrollY), setTimeout(check, 120)));
+          check();
+        }),
+    );
+
+  test("glide instead of jumping, and quick presses add up", async ({ page }) => {
+    await openPasted(page);
+    const step = await lineStep(page);
+    // Sample every frame after one press: a glide passes through positions between start and end.
+    const samples = page.evaluate(
+      () =>
+        new Promise<number[]>((resolve) => {
+          const seen: number[] = [];
+          const start = performance.now();
+          const tick = () => (seen.push(window.scrollY), performance.now() - start < 500 ? requestAnimationFrame(tick) : resolve(seen));
+          requestAnimationFrame(tick);
+        }),
+    );
+    await page.keyboard.press("j");
+    const positions = await samples;
+    const between = new Set(positions.filter((y) => y > 1 && y < step - 1));
+    expect(between.size).toBeGreaterThanOrEqual(3);
+    expect(await settled(page)).toBeCloseTo(step, 0);
+
+    for (let i = 0; i < 4; i++) await page.keyboard.press("j");
+    expect(await settled(page)).toBeCloseTo(step * 5, 0);
+    await page.keyboard.press("k");
+    expect(await settled(page)).toBeCloseTo(step * 4, 0);
+  });
+
+  test("other scrolling takes over from a glide", async ({ page }) => {
+    await openPasted(page);
+    const step = await lineStep(page);
+    for (let i = 0; i < 8; i++) await page.keyboard.press("j");
+    // Somewhere the glide could never be heading, so the two can't be confused.
+    const elsewhere = step * 20;
+    await page.evaluate((y) => window.scrollTo(0, y), elsewhere);
+    expect(await settled(page)).toBeCloseTo(elsewhere, 0);
+  });
+
+  test("with reduced motion the step is instant", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openPasted(page);
+    const step = await lineStep(page);
+    await page.keyboard.press("j");
+    expect(await page.evaluate(() => window.scrollY)).toBeCloseTo(step, 0);
+  });
+});

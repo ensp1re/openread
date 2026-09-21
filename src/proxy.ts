@@ -10,7 +10,7 @@ import { readPath, readQuery } from "@/lib/read-path";
  * It happens here, before anything renders, because the page streams its frame first — a redirect
  * after that becomes a meta refresh the reader sits through.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { url, simple } = readQuery(request.nextUrl.search);
   if (!url) return NextResponse.next();
 

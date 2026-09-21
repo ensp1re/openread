@@ -3,12 +3,54 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { SIZE_OPTIONS, THEME, THEME_OPTIONS } from "@/constants/preferences";
-import { BAR_ALWAYS_VISIBLE_ABOVE_PX, BAR_REVEAL_SCROLL_UP_PX } from "@/constants/reader";
+import {
+  BAR_ALWAYS_VISIBLE_ABOVE_PX,
+  BAR_REVEAL_SCROLL_UP_PX,
+  HISTORY_RETURN_MS,
+  READING_LINE,
+  RESUME_MARK_MS,
+  RESUME_RANGE,
+} from "@/constants/reader";
+import { glideBy, glideTo } from "@/lib/glide";
 import { readPosition, savePosition } from "@/lib/library/position";
+import { blockAtLine, openingWords, readingBlocks, scrollTopFor } from "@/lib/reading-blocks";
 import { recentStore } from "@/lib/library/recent";
 import { preferencesStore, syncThemeColor } from "@/lib/preferences";
 import type { Preferences } from "@/types/preferences";
-import type { ReaderChromeOptions } from "@/types/reader";
+import type { ReaderChromeOptions, ResumeOffer } from "@/types/reader";
+
+const blocksOf = (content: HTMLElement | null) => readingBlocks(content?.querySelector(".prose"));
+
+/** Marks the paragraph returned to, briefly, so the eye finds it; focus goes there for screen readers. */
+function markBlock(el: Element) {
+  if (!(el instanceof HTMLElement)) return;
+  el.classList.add("resume-mark");
+  el.tabIndex = -1;
+  el.focus({ preventScroll: true });
+  setTimeout(() => el.classList.add("resume-mark-out"), RESUME_MARK_MS);
+  setTimeout(() => {
+    el.classList.remove("resume-mark", "resume-mark-out");
+    el.removeAttribute("tabindex");
+  }, RESUME_MARK_MS + 800);
+}
+
+// Back and Forward return to a page; they aren't a decision to open it, so they get no question.
+// The address is kept too: a different item opened just after pressing Back is still a fresh open.
+let historyMove = { href: "", at: -Infinity };
+if (typeof window !== "undefined") {
+  window.addEventListener("popstate", () => (historyMove = { href: location.href, at: performance.now() }));
+}
+let firstReaderInDocument = true;
+
+/** True when this reader appeared because of a reload, Back or Forward rather than a fresh open. */
+function isReturn(): boolean {
+  if (historyMove.href === location.href && performance.now() - historyMove.at < HISTORY_RETURN_MS) return true;
+  // Only the first reader in a page load can have been reloaded; later ones came by a link.
+  if (!firstReaderInDocument) return false;
+  firstReaderInDocument = false;
+  const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+  return !!nav && nav.name === location.href && (nav.type === "reload" || nav.type === "back_forward");
+}
 
 const isTyping = (t: EventTarget | null) =>
   t instanceof HTMLElement &&
@@ -43,6 +85,7 @@ export function useReaderChrome({
   chapter = 0,
   bookProgress,
   onKey,
+  returning = false,
 }: ReaderChromeOptions) {
   const router = useRouter();
   const prefs = useSyncExternalStore(preferencesStore.subscribe, preferencesStore.get, preferencesStore.getServer);
@@ -52,6 +95,11 @@ export function useReaderChrome({
   const [barHidden, setBarHidden] = useState(false);
   const [minutesLeft, setMinutesLeft] = useState(readingMinutes);
   const [announcement, setAnnouncement] = useState("");
+  const [resume, setResume] = useState<ResumeOffer | null>(null);
+  // While a place is on offer and the reader hasn't moved on, it must not be overwritten.
+  const holdPlace = useRef<{ fromY: number; block?: number; fraction: number } | null>(null);
+  // Whether to ask, decided once per item (Strict Mode runs effects twice), and the chapter it opened at.
+  const visit = useRef<{ key: string; ask: boolean; chapter: number } | null>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
   const focusModeRef = useRef(focusMode);
@@ -88,17 +136,74 @@ export function useReaderChrome({
     return () => media.removeEventListener("change", syncThemeColor);
   }, []);
 
-  // List it under Recent, then restore where the reader left off in this chapter.
+  // List it under Recent, then offer the place left last time, or quietly return to it.
   useEffect(() => {
     if (recent) recentStore.open(recent);
     if (!positionKey) return;
-    const f = readPosition(positionKey, chapter)?.fraction ?? 0;
-    if (f > 0.02 && f < 0.98) {
-      requestAnimationFrame(() => window.scrollTo({ top: f * document.documentElement.scrollHeight }));
-    }
+
+    if (visit.current?.key !== positionKey) visit.current = { key: positionKey, ask: !returning && !isReturn(), chapter };
+    // Only the chapter the item opened at is offered; moving between chapters returns quietly.
+    const offer = visit.current.ask && visit.current.chapter === chapter;
+    if (visit.current.chapter !== chapter) visit.current.ask = false;
+    // A link to a place in the text wins over the place left last time.
+    if (location.hash) return;
+
+    const saved = readPosition(positionKey, chapter);
+    const read = saved?.progress ?? saved?.fraction ?? 0;
+    if (!saved || read <= RESUME_RANGE.MIN || read >= RESUME_RANGE.MAX) return;
+
+    const frame = requestAnimationFrame(() => {
+      const blocks = blocksOf(contentRef.current);
+      const block = saved.block ?? blockAtLine(blocks, saved.fraction * document.documentElement.scrollHeight + window.innerHeight * READING_LINE);
+      if (!offer) {
+        const el = blocks[block];
+        window.scrollTo({ top: el ? scrollTopFor(el, READING_LINE) : saved.fraction * document.documentElement.scrollHeight });
+        return;
+      }
+      holdPlace.current = { fromY: window.scrollY, block, fraction: saved.fraction };
+      const listed = recentStore.get().find((i) => i.id === positionKey)?.progress;
+      const percent = Math.max(1, Math.round((listed || (bookProgress ? bookProgress(read) : read)) * 100));
+      const inBook = !!bookProgress;
+      setResume({ percent, at: saved.at, words: openingWords(blocks[block]), inBook });
+      setAnnouncement(`You were ${percent}% through. Continue reading, or go to the ${inBook ? "start of the chapter" : "start"}.`);
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      // Another chapter or item: whatever was on offer belonged to this one.
+      holdPlace.current = null;
+      setResume(null);
+    };
     // The seed object is recreated on every render; its id identifies it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [positionKey, recent?.id, chapter]);
+
+  const continueReading = useCallback(() => {
+    const place = holdPlace.current;
+    holdPlace.current = null;
+    setResume(null);
+    if (!place) return;
+    const el = place.block === undefined ? undefined : blocksOf(contentRef.current)[place.block];
+    glideTo(el ? scrollTopFor(el, READING_LINE) : place.fraction * document.documentElement.scrollHeight);
+    if (el) markBlock(el);
+  }, [contentRef]);
+
+  const startOver = useCallback(() => {
+    holdPlace.current = null;
+    setResume(null);
+    if (positionKey) {
+      savePosition(positionKey, { fraction: 0, chapter, block: 0, progress: 0 });
+      recentStore.setProgress(positionKey, bookProgress ? bookProgress(0) : 0);
+    }
+    glideTo(0);
+    document.getElementById("article")?.focus({ preventScroll: true });
+  }, [positionKey, chapter, bookProgress]);
+
+  // Not now: the card goes, the place stays until the reader moves on.
+  const dismissResume = useCallback(() => {
+    setResume(null);
+    // Focus leaves the card with it; if it was somewhere else (Esc from a link), it stays there.
+    if (document.activeElement?.closest(".resume-card")) document.getElementById("article")?.focus({ preventScroll: true });
+  }, []);
 
   // One scroll listener drives the progress line, time left, bar visibility and the saved position.
   useEffect(() => {
@@ -107,6 +212,8 @@ export function useReaderChrome({
     let frame = 0;
     let saveTimer: ReturnType<typeof setTimeout> | undefined;
     let fraction = 0;
+    // Found on first save and again if the text is replaced (the PDF view swaps it).
+    let blocks: Element[] = [];
 
     const update = () => {
       frame = 0;
@@ -133,12 +240,22 @@ export function useReaderChrome({
       }
       lastY = y;
 
+      // Reading on for a screen from where the offer was made is an answer too: from here, then.
+      const held = holdPlace.current;
+      if (held && Math.abs(y - held.fromY) > window.innerHeight) {
+        holdPlace.current = null;
+        setResume(null);
+      }
+
       // Only real scrolling saves: the first measurement at the top would overwrite "Finished" with 0.
-      if (positionKey && scrolled) {
+      if (positionKey && scrolled && !holdPlace.current) {
         clearTimeout(saveTimer);
         const key = positionKey;
         saveTimer = setTimeout(() => {
-          savePosition(key, { fraction: y / document.documentElement.scrollHeight, chapter });
+          const scrollY = window.scrollY;
+          if (!blocks[0]?.isConnected) blocks = blocksOf(contentRef.current);
+          const block = blocks.length ? blockAtLine(blocks, scrollY + window.innerHeight * READING_LINE) : undefined;
+          savePosition(key, { fraction: scrollY / document.documentElement.scrollHeight, chapter, block, progress: fraction });
           recentStore.setProgress(key, bookProgress ? bookProgress(fraction) : fraction);
         }, 400);
       }
@@ -199,10 +316,10 @@ export function useReaderChrome({
           toggleFocus();
           break;
         case "j":
-          window.scrollBy({ top: lineStep });
+          glideBy(lineStep);
           break;
         case "k":
-          window.scrollBy({ top: -lineStep });
+          glideBy(-lineStep);
           break;
         case "n":
           exit();
@@ -212,6 +329,8 @@ export function useReaderChrome({
           break;
         case "Escape":
           if (settingsOpen) closeSettings();
+          // Focus mode hides the card, so Esc there means leaving focus mode.
+          else if (resume && !focusMode) dismissResume();
           else if (focusMode) toggleFocus();
           else if (!onKeyRef.current?.(e.key)) return;
           break;
@@ -223,7 +342,7 @@ export function useReaderChrome({
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeSettings, exit, focusMode, settingsOpen, setPrefs, toggleFocus, contentRef]);
+  }, [closeSettings, exit, focusMode, settingsOpen, setPrefs, toggleFocus, contentRef, resume, dismissResume]);
 
   return {
     prefs,
@@ -242,5 +361,9 @@ export function useReaderChrome({
     progressRef,
     settingsButtonRef,
     setPrefs,
+    resume,
+    continueReading,
+    startOver,
+    dismissResume,
   };
 }

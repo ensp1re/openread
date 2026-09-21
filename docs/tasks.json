@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "nextId": 13,
+  "nextId": 15,
   "tasks": [
     {
       "id": "F001",
@@ -1150,6 +1150,205 @@
         }
       },
       "baseCommit": "61863adb69ea4c4cd8140086f80137485cc294d8",
+      "failedVerifies": 0
+    },
+    {
+      "id": "F013",
+      "behavior": "Reopening a half-read article or chapter offers a non-modal card to continue at the paragraph where reading stopped, start over, or close",
+      "acceptance": [
+        "Opened again (a new tab, or from Recent or a link in the same tab) with 2%-98% read, the page opens at the top with a card showing the percentage, when, and the opening words of the paragraph where reading stopped",
+        "Continue brings that paragraph into view and marks it briefly; Start over clears the saved place; Close or scrolling a screen hides the card and the saved place survives until the reader moves on",
+        "Reload, Back or Forward restore the place silently with no card; something read to the end opens at the top with no card; books offer Start of chapter",
+        "The card passes axe WCAG 2.2 A/AA in all four themes and is reachable by keyboard without stealing focus"
+      ],
+      "dependsOn": [],
+      "state": "passing",
+      "verification": [
+        "lint",
+        "typecheck",
+        "unit",
+        "recent-e2e",
+        "book-e2e",
+        "files-e2e",
+        "a11y"
+      ],
+      "refs": [
+        "R-17"
+      ],
+      "keep": [
+        "src/lib/extract/*",
+        "Recent list behaviour"
+      ],
+      "review": true,
+      "notes": [
+        "2026-09-21 review fail by reviewer: Blocker: finished items offered at 100% (saved fraction is scrollY/scrollHeight, never reaches 0.98). Should-fix: same-tab rule hides the card when reopening from Recent in one tab; card covers ~half a landscape phone. Nits: hash still restored, stale block kept, announcement says start over in books, Esc moves focus from outside the card, card in focus mode, tabindex left on mark.",
+        "2026-09-21 review pass by reviewer: Independent review, 3 rounds. Round 1 FAIL: finished items offered at 100% (scroll fraction can't reach 0.98), same-tab rule hid the card on reopen from Recent, card covered half a landscape phone, plus nits. Round 2 FAIL: Esc in focus mode dismissed the hidden card; popstate window was time-only. Round 3 PASS. Remaining nits accepted: reopening the same item from Recent within 30s of pressing Back into it is silent; places finished before this change may be offered once.",
+        "2026-09-21 review pass by reviewer: Re-confirmed after tsconfig.json revert (review build artifact); code unchanged since round-3 PASS."
+      ],
+      "blockedReason": null,
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-21T23:45:57Z",
+        "checks": [
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.7,
+            "log": "docs/runs/F013-20260921T234557Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.0,
+            "log": "docs/runs/F013-20260921T234557Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 10.1,
+            "log": "docs/runs/F013-20260921T234557Z-unit.log"
+          },
+          {
+            "id": "recent-e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 19.9,
+            "log": "docs/runs/F013-20260921T234557Z-recent-e2e.log"
+          },
+          {
+            "id": "book-e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 10.1,
+            "log": "docs/runs/F013-20260921T234557Z-book-e2e.log"
+          },
+          {
+            "id": "files-e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 12.6,
+            "log": "docs/runs/F013-20260921T234557Z-files-e2e.log"
+          },
+          {
+            "id": "a11y",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 10.7,
+            "log": "docs/runs/F013-20260921T234557Z-a11y.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.3,
+            "log": "docs/runs/F013-20260921T234557Z-build.log"
+          },
+          {
+            "id": "keep",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 0.0,
+            "log": "docs/runs/F013-20260921T234557Z-keep.log"
+          }
+        ],
+        "taskHash": "bfc5ea8c43d7d21b",
+        "filesHash": "063c0ec613677743",
+        "review": {
+          "result": "pass",
+          "by": "reviewer",
+          "summary": "Re-confirmed after tsconfig.json revert (review build artifact); code unchanged since round-3 PASS.",
+          "at": "2026-09-21T23:47:32Z",
+          "filesHash": "063c0ec613677743"
+        },
+        "commit": "83de754",
+        "doneAt": "2026-09-21T23:47:48Z",
+        "proof": {
+          "1": "e2e/recent.spec.ts: coming back to something half-read › opens at the top and offers the place, with the words that were being read; pasted text is listed in Recent and reopens (same-tab Recent asks)",
+          "2": "e2e/recent.spec.ts: opens at the top (Continue and the mark); Start over forgets the place; Not now keeps the place for next time; reading on for a screen answers it",
+          "3": "e2e/recent.spec.ts: a reload returns without asking; pressing Back then opening a different item still asks; something read to the end isn't offered; e2e/book.spec.ts: a book opened again offers Start of chapter; e2e/files.spec.ts: coming back from a PDF's pages doesn't ask",
+          "4": "e2e/accessibility.spec.ts: the offer to continue has no WCAG A/AA violations in any theme; e2e/recent.spec.ts: Escape closes it without moving"
+        }
+      },
+      "baseCommit": "c3065d7c1d0f191edbd67a8c827bd4e7a37f13d9",
+      "failedVerifies": 0
+    },
+    {
+      "id": "F014",
+      "behavior": "j and k scroll the reader smoothly",
+      "acceptance": [
+        "j and k glide three lines instead of jumping; repeated presses add to one continuous glide",
+        "Other scrolling cancels a glide; with reduced motion the step is instant"
+      ],
+      "dependsOn": [],
+      "state": "passing",
+      "verification": [
+        "lint",
+        "typecheck",
+        "unit",
+        "e2e"
+      ],
+      "refs": [
+        "R-18"
+      ],
+      "keep": [],
+      "review": false,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-09-21T19:12:02Z",
+        "checks": [
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 2.1,
+            "log": "docs/runs/F014-20260921T191202Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.1,
+            "log": "docs/runs/F014-20260921T191202Z-typecheck.log"
+          },
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 10.7,
+            "log": "docs/runs/F014-20260921T191202Z-unit.log"
+          },
+          {
+            "id": "e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 7.6,
+            "log": "docs/runs/F014-20260921T191202Z-e2e.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.2,
+            "log": "docs/runs/F014-20260921T191202Z-build.log"
+          }
+        ],
+        "taskHash": "024d56835af05b91",
+        "filesHash": "a2136d12132fefa1",
+        "commit": "c3065d7",
+        "doneAt": "2026-09-21T19:12:49Z",
+        "proof": {
+          "1": "e2e/reader.spec.ts: j and k › glide instead of jumping, and quick presses add up",
+          "2": "e2e/reader.spec.ts: j and k › other scrolling takes over from a glide; with reduced motion the step is instant"
+        }
+      },
+      "baseCommit": "64201773086083d688971f4e408df5df097a179e",
       "failedVerifies": 0
     }
   ],

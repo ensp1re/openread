@@ -10,7 +10,13 @@ import { useReaderChrome } from "./use-reader-chrome";
 export function Reader({ article, recent, original }: ReaderProps) {
   const articleRef = useRef<HTMLElement>(null);
   const positionKey = recent?.id ?? article.url;
-  const chrome = useReaderChrome({ positionKey, recent, readingMinutes: article.readingMinutes, contentRef: articleRef });
+  const chrome = useReaderChrome({
+    positionKey,
+    recent,
+    readingMinutes: article.readingMinutes,
+    contentRef: articleRef,
+    returning: original?.returning,
+  });
 
   const host = article.url ? new URL(article.url).hostname.replace(/^www\./, "") : null;
   const source = article.siteName ?? host;

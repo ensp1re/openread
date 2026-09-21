@@ -73,3 +73,23 @@ test("the PDF views have no WCAG A/AA violations", async ({ page }) => {
   await expect(page.locator(".pdf-page-list canvas").first()).toBeVisible();
   expect(await violations(page)).toEqual([]);
 });
+
+test("the offer to continue has no WCAG A/AA violations in any theme", async ({ page, context }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/paste");
+  await page.getByLabel("Article text").fill(Array.from({ length: 40 }, () => TEXT).join("\n\n"));
+  await page.getByRole("button", { name: "Read" }).click();
+  await expect(page).toHaveURL(/\/file\//);
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight * 0.5));
+  await page.waitForTimeout(700);
+
+  for (const theme of ["light", "sepia", "soft", "dark"]) {
+    const tab = await context.newPage();
+    await tab.emulateMedia({ reducedMotion: "reduce" });
+    await tab.addInitScript((t) => localStorage.setItem("openread:preferences", JSON.stringify({ theme: t })), theme);
+    await tab.goto(page.url());
+    await expect(tab.getByRole("region", { name: "Pick up where you left off?" })).toBeVisible();
+    expect(await violations(tab), theme).toEqual([]);
+    await tab.close();
+  }
+});
