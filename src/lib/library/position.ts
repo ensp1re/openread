@@ -34,10 +34,22 @@ function write(key: string, value: StoredPosition) {
  */
 export function savePosition(key: string, position: SavedPosition) {
   const previous = read(key);
+  const { fraction, chapter, block, progress } = position;
+  // A field this save doesn't know is dropped for its chapter rather than left behind, stale.
+  const perChapter = (map: Readonly<Record<number, number>> | undefined, value: number | undefined) => {
+    const next = { ...map };
+    if (value === undefined) delete next[chapter];
+    else next[chapter] = value;
+    return next;
+  };
   write(key, {
-    f: position.fraction,
-    c: position.chapter,
-    m: { ...previous?.m, [position.chapter]: position.fraction },
+    f: fraction,
+    c: chapter,
+    m: { ...previous?.m, [chapter]: fraction },
+    b: block,
+    mb: perChapter(previous?.mb, block),
+    p: progress,
+    mp: perChapter(previous?.mp, progress),
     at: Date.now(),
   });
 }
@@ -45,15 +57,34 @@ export function savePosition(key: string, position: SavedPosition) {
 /** Records the chapter being read without touching any saved fraction. */
 export function saveChapter(key: string, chapter: number) {
   const previous = read(key);
-  write(key, { f: previous?.m?.[chapter] ?? 0, c: chapter, m: previous?.m, at: Date.now() });
+  write(key, {
+    f: previous?.m?.[chapter] ?? 0,
+    c: chapter,
+    m: previous?.m,
+    b: previous?.mb?.[chapter],
+    mb: previous?.mb,
+    p: previous?.mp?.[chapter],
+    mp: previous?.mp,
+    at: Date.now(),
+  });
 }
+
+const asBlock = (v: unknown) => (Number.isInteger(v) && (v as number) >= 0 ? (v as number) : undefined);
+const asProgress = (v: unknown) => (typeof v === "number" && v >= 0 && v <= 1 ? v : undefined);
 
 export function readPosition(key: string, chapter?: number): SavedPosition | null {
   const raw = read(key);
   if (!raw) return null;
   const c = Number(raw.c) || 0;
-  if (chapter === undefined) return { chapter: c, fraction: Number(raw.f) || 0 };
-  return { chapter, fraction: Number(raw.m?.[chapter] ?? (c === chapter ? raw.f : 0)) || 0 };
+  const at = Number(raw.at) || undefined;
+  if (chapter === undefined) return { chapter: c, fraction: Number(raw.f) || 0, block: asBlock(raw.b), progress: asProgress(raw.p), at };
+  return {
+    chapter,
+    fraction: Number(raw.m?.[chapter] ?? (c === chapter ? raw.f : 0)) || 0,
+    block: asBlock(raw.mb?.[chapter] ?? (c === chapter ? raw.b : undefined)),
+    progress: asProgress(raw.mp?.[chapter] ?? (c === chapter ? raw.p : undefined)),
+    at,
+  };
 }
 
 export function removePosition(key: string) {

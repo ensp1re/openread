@@ -67,6 +67,7 @@ test("a book reopens from Recent at the chapter and place it was left", async ({
   await expect(row).toContainText(/\d+%/);
   await row.getByRole("link").click();
   await expect(page.getByRole("heading", { level: 1, name: "Chapter 4" })).toBeVisible();
+  await page.getByRole("region", { name: "Pick up where you left off?" }).getByRole("button", { name: "Continue reading" }).click();
   await expect.poll(() => page.evaluate(() => window.scrollY / document.documentElement.scrollHeight)).toBeGreaterThan(0.3);
 });
 
@@ -120,4 +121,32 @@ test("a contents entry for a section in another chapter lands on that section", 
   });
   expect(offset).not.toBeNull();
   expect(Math.abs(offset!)).toBeLessThan(120); // the section is at the top of the screen, not scrolled past
+});
+
+test("a book opened again in a new tab offers the place in its chapter; moving chapters doesn't ask", async ({ page }) => {
+  await openBook(page);
+  const url = page.url().split("?")[0];
+  await page.getByRole("button", { name: "Start reading" }).click();
+  await page.getByRole("button", { name: "Contents" }).click();
+  await contents(page).getByRole("button", { name: /Chapter 4/ }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Chapter 4" })).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight * 0.5));
+  await page.waitForTimeout(700);
+
+  const tab = await page.context().newPage();
+  await tab.goto(url);
+  await expect(tab.getByRole("heading", { level: 1, name: "Chapter 4" })).toBeVisible();
+  const card = tab.getByRole("region", { name: "Pick up where you left off?" });
+  await expect(card.getByRole("button", { name: "Start of chapter" })).toBeVisible();
+  await card.getByRole("button", { name: "Continue reading" }).click();
+  await expect.poll(() => tab.evaluate(() => window.scrollY / document.documentElement.scrollHeight)).toBeGreaterThan(0.3);
+
+  // Next chapter and back: the place in chapter 4 comes back quietly.
+  await tab.waitForTimeout(700);
+  await tab.getByRole("button", { name: /^Next/ }).click();
+  await expect(tab.getByRole("heading", { level: 1, name: "Chapter 5" })).toBeVisible();
+  await tab.getByRole("button", { name: /^Previous/ }).click();
+  await expect(tab.getByRole("heading", { level: 1, name: "Chapter 4" })).toBeVisible();
+  await expect.poll(() => tab.evaluate(() => window.scrollY / document.documentElement.scrollHeight)).toBeGreaterThan(0.3);
+  await expect(card).toBeHidden();
 });

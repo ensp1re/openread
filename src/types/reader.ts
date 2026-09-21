@@ -31,6 +31,27 @@ export interface ReaderChromeOptions {
   readonly bookProgress?: (fraction: number) => number;
   /** Keys the reader handles itself; return true when the key was used. */
   readonly onKey?: (key: string) => boolean;
+  /** Shown again after another view of the same item (the PDF's pages): return quietly, don't ask. */
+  readonly returning?: boolean;
+}
+
+/** A place left earlier, offered when the item is opened again. */
+export interface ResumeOffer {
+  /** Progress through the whole item, 0–100, the same number Recent shows. */
+  readonly percent: number;
+  /** When the place was saved. */
+  readonly at?: number;
+  /** Opening words of the paragraph where reading stopped. */
+  readonly words: string;
+  /** In a book the choice is this chapter's start, not the whole book's. */
+  readonly inBook: boolean;
+}
+
+export interface ResumeCardProps {
+  readonly offer: ResumeOffer;
+  readonly onContinue: () => void;
+  readonly onStartOver: () => void;
+  readonly onDismiss: () => void;
 }
 
 export type ReaderChromeState = ReturnType<typeof import("@/components/reader/use-reader-chrome").useReaderChrome>;

@@ -76,6 +76,7 @@ export function BookReader({ book, chapter, onChapterChange, recent, showTitlePa
     chapter: current.index,
     bookProgress,
     onKey,
+    returning: original?.returning,
   });
 
   // A new chapter: put focus and the screen reader at the start of the text, not on a button far below.

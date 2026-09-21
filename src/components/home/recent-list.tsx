@@ -5,24 +5,9 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { RECENT_UNDO_MS, RECENT_UNDO_PAUSE_MS, RECENT_VISIBLE_ITEMS } from "@/constants/library";
 import { collectUnusedItems, forgetItem, setPending } from "@/lib/library/items";
 import { recentStore } from "@/lib/library/recent";
+import { ago } from "@/lib/time-ago";
 import type { RecentItem } from "@/types/library";
 import type { UndoState } from "@/types/pages";
-
-const TIME = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
-const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
-  ["year", 365 * 86400_000],
-  ["month", 30 * 86400_000],
-  ["week", 7 * 86400_000],
-  ["day", 86400_000],
-  ["hour", 3600_000],
-  ["minute", 60_000],
-];
-
-function ago(at: number): string {
-  const diff = at - Date.now();
-  for (const [unit, ms] of UNITS) if (Math.abs(diff) >= ms) return TIME.format(Math.round(diff / ms), unit);
-  return "just now";
-}
 
 function progressLabel(p: number): string | null {
   if (p >= 0.98) return "Finished";
