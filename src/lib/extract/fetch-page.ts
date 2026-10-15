@@ -140,6 +140,7 @@ async function fetchOnce(input: string, signal: AbortSignal): Promise<FetchPageR
     if (signal.aborted) return { ok: false, code: EXTRACT_ERROR.TIMEOUT };
     const code = (err as { cause?: { code?: string } }).cause?.code;
     if (code === "EBLOCKED") return { ok: false, code: EXTRACT_ERROR.BLOCKED_HOST };
+    console.error("fetch failed", url.href, err);
     return { ok: false, code: EXTRACT_ERROR.FETCH_FAILED };
   }
 }
