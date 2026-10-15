@@ -1,9 +1,0 @@
-node_modules
-.next
-.next-*
-.git
-.env*
-.wrangler
-test-results
-playwright-report
-docs/runs
