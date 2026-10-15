@@ -11,10 +11,12 @@ import {
   RESUME_MARK_MS,
   RESUME_RANGE,
 } from "@/constants/reader";
+import { READING_IDLE_MS, READING_TICK_MS } from "@/constants/library";
 import { glideBy, glideTo } from "@/lib/glide";
 import { readPosition, savePosition } from "@/lib/library/position";
 import { blockAtLine, openingWords, readingBlocks, scrollTopFor } from "@/lib/reading-blocks";
 import { recentStore } from "@/lib/library/recent";
+import { addReadingSeconds } from "@/lib/reading-time";
 import { preferencesStore, syncThemeColor } from "@/lib/preferences";
 import type { Preferences } from "@/types/preferences";
 import type { ReaderChromeOptions, ResumeOffer } from "@/types/reader";
@@ -276,6 +278,21 @@ export function useReaderChrome({
       window.removeEventListener("resize", onScroll);
     };
   }, [positionKey, readingMinutes, prefs.progress, focusMode, chapter, bookProgress, contentRef]);
+
+  // Reading time for the home page chart: counted while the page is visible and someone is using it.
+  useEffect(() => {
+    let lastActive = Date.now();
+    const active = () => (lastActive = Date.now());
+    const events = ["scroll", "keydown", "pointermove", "pointerdown", "wheel", "touchstart"] as const;
+    events.forEach((e) => window.addEventListener(e, active, { passive: true }));
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible" && Date.now() - lastActive < READING_IDLE_MS) addReadingSeconds(READING_TICK_MS / 1000);
+    }, READING_TICK_MS);
+    return () => {
+      clearInterval(timer);
+      events.forEach((e) => window.removeEventListener(e, active));
+    };
+  }, []);
 
   // Moving the pointer to the top edge brings the bar back without scrolling.
   useEffect(() => {

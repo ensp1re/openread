@@ -1,5 +1,6 @@
-import type { LIBRARY_STORE, RECENT_KIND } from "@/constants/library";
+import type { BACKUP_APP, BACKUP_VERSION, LIBRARY_STORE, RECENT_KIND } from "@/constants/library";
 import type { StoredFileRecord } from "@/types/document";
+import type { Preferences } from "@/types/preferences";
 
 type ValueOf<T> = T[keyof T];
 
@@ -77,4 +78,16 @@ export interface CleanupInput {
   /** Stored id → Undo deadline. */
   readonly pending: PendingRemovals;
   readonly now: number;
+}
+
+/** Seconds read per local day, keyed `YYYY-MM-DD`. */
+export type ReadingLog = Readonly<Record<string, number>>;
+
+/** The file Export writes and Import reads. */
+export interface Backup {
+  readonly app: typeof BACKUP_APP;
+  readonly version: typeof BACKUP_VERSION;
+  readonly exportedAt: string;
+  readonly preferences: Preferences;
+  readonly readingTime: ReadingLog;
 }

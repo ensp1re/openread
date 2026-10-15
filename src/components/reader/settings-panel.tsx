@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DEFAULT_PREFERENCES,
   FONT_OPTIONS,
@@ -9,11 +9,14 @@ import {
   THEME_OPTIONS,
   WIDTH_OPTIONS,
 } from "@/constants/preferences";
+import { downloadBackup, importBackup } from "@/lib/backup";
 import type { SettingsPanelProps } from "@/types/reader";
 import { OptionGroup } from "./option-group";
 
 export function SettingsPanel({ preferences: p, onChange, onClose, focusMode, onToggleFocus, onShowShortcuts }: SettingsPanelProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [backupNote, setBackupNote] = useState("");
 
   useEffect(() => {
     const panel = ref.current;
@@ -62,6 +65,34 @@ export function SettingsPanel({ preferences: p, onChange, onClose, focusMode, on
         <span>Focus mode</span>
         <input type="checkbox" role="switch" checked={focusMode} onChange={onToggleFocus} />
       </label>
+
+      <div className="settings-backup">
+        <span>Settings and reading time</span>
+        <button type="button" className="text-button" onClick={downloadBackup}>
+          Export
+        </button>
+        <button type="button" className="text-button" onClick={() => fileRef.current?.click()}>
+          Import
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".json,application/json"
+          hidden
+          aria-label="Import settings file"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (!file) return;
+            // Cleared first, so the same message twice is still shown and announced again.
+            setBackupNote("");
+            setBackupNote(await importBackup(file));
+          }}
+        />
+      </div>
+      <p className="settings-note" role="status">
+        {backupNote}
+      </p>
 
       <div className="settings-footer">
         <button type="button" className="text-button shortcuts-link" onClick={onShowShortcuts}>

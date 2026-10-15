@@ -16,6 +16,15 @@ async function violations(page: import("@playwright/test").Page) {
 test("home and error pages have no WCAG A/AA violations", async ({ page }) => {
   await page.goto("/");
   expect(await violations(page)).toEqual([]);
+  // Again with the reading-time chart showing.
+  await page.evaluate(() => {
+    const d = new Date();
+    const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    localStorage.setItem("openread:reading-time", JSON.stringify({ [day]: 1500 }));
+  });
+  await page.reload();
+  await expect(page.getByRole("region", { name: /Reading, last 30 days/ })).toBeVisible();
+  expect(await violations(page)).toEqual([]);
   await page.goto("/read?url=http://127.0.0.1/");
   expect(await violations(page)).toEqual([]);
 });

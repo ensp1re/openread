@@ -135,6 +135,15 @@
         "NEXT_DIST_DIR=.next-check PORT=3299 node scripts/check-home-js.mjs"
       ],
       "timeoutSeconds": 600
+    },
+    {
+      "id": "stats-e2e",
+      "argv": [
+        "sh",
+        "-c",
+        "NEXT_DIST_DIR=.next-check pnpm exec playwright test e2e/stats.spec.ts"
+      ],
+      "timeoutSeconds": 900
     }
   ]
 }

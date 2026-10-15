@@ -714,6 +714,8 @@ html[data-theme="dark"] .pdf-page-list canvas {
     grid-column: span 1;
   }
 
+  .settings-backup,
+  .settings-note,
   .settings-footer {
     grid-column: 1 / -1;
   }
@@ -871,6 +873,29 @@ fieldset:has(input[name="size"]) .segmented [aria-hidden] { font-family: var(--f
 
 .settings-switch input:checked::before {
   transform: translateX(0.875rem);
+}
+
+.settings-backup {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-inline: -0.25rem;
+  border-top: 1px solid var(--rule);
+}
+
+.settings-backup span {
+  flex: 1;
+  padding-inline: 0.25rem;
+  color: var(--muted);
+}
+
+/* Kept in the page when empty, so screen readers announce the message when it arrives. */
+.settings-note {
+  color: var(--muted);
+}
+
+.settings-note:not(:empty) {
+  padding-bottom: 0.5rem;
 }
 
 .settings-footer {
@@ -1538,6 +1563,73 @@ input:focus-visible + .file-button {
 .recent-remove:hover {
   color: var(--text);
   background: var(--code-bg);
+}
+
+/* Reading time: one quiet line, in the top corner on wide screens and under Recent on narrow ones */
+
+.reading-stats {
+  margin-top: 3rem;
+}
+
+@media (min-width: 1100px) {
+  .home {
+    position: relative;
+  }
+
+  .reading-stats {
+    position: absolute;
+    top: 1.5rem;
+    right: var(--gutter);
+    width: 15rem;
+    margin: 0;
+  }
+}
+
+.reading-stats h2 {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.reading-stats-total {
+  margin: 0.15rem 0 0.5rem;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.reading-stats-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.reading-stats-base {
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+
+.reading-stats-line {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.reading-stats-dot {
+  fill: var(--text);
+}
+
+.reading-stats-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--muted);
 }
 
 .home-footnote {

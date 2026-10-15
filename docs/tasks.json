@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "nextId": 15,
+  "nextId": 17,
   "tasks": [
     {
       "id": "F001",
@@ -1350,6 +1350,130 @@
       },
       "baseCommit": "64201773086083d688971f4e408df5df097a179e",
       "failedVerifies": 0
+    },
+    {
+      "id": "F015",
+      "behavior": "The home page shows minutes read per day as a small line chart",
+      "acceptance": [
+        "Reader time counts in 10s ticks only while the tab is visible and the user was active in the last 2 minutes",
+        "Home shows a corner panel with a line of minutes per day for the last 30 days and the total; hidden when nothing is recorded",
+        "Home with the panel has no WCAG A/AA violations and home JS stays within budget"
+      ],
+      "dependsOn": [],
+      "state": "verified",
+      "verification": [
+        "unit",
+        "stats-e2e",
+        "a11y",
+        "bundle"
+      ],
+      "refs": [
+        "R-19",
+        "D-21"
+      ],
+      "keep": [
+        "reading values only in globals.css",
+        "e2e/reader.spec.ts behavior"
+      ],
+      "review": true,
+      "notes": [
+        "2026-10-15 review pass by reviewer: Independent review: day math, store snapshot, hydration, timer cleanup and project rules OK. Optional test tightening (idle 100-120s) applied."
+      ],
+      "blockedReason": null,
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-10-15T23:40:23Z",
+        "checks": [
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 10.3,
+            "log": "docs/runs/F015-20261015T234023Z-unit.log"
+          },
+          {
+            "id": "stats-e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 7.3,
+            "log": "docs/runs/F015-20261015T234023Z-stats-e2e.log"
+          },
+          {
+            "id": "a11y",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 10.6,
+            "log": "docs/runs/F015-20261015T234023Z-a11y.log"
+          },
+          {
+            "id": "bundle",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.9,
+            "log": "docs/runs/F015-20261015T234023Z-bundle.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 2.4,
+            "log": "docs/runs/F015-20261015T234023Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.0,
+            "log": "docs/runs/F015-20261015T234023Z-typecheck.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.4,
+            "log": "docs/runs/F015-20261015T234023Z-build.log"
+          }
+        ],
+        "taskHash": "c715399c855a215d",
+        "filesHash": "cb3614c39a7b685d",
+        "review": {
+          "result": "pass",
+          "by": "reviewer",
+          "summary": "Independent review: day math, store snapshot, hydration, timer cleanup and project rules OK. Optional test tightening (idle 100-120s) applied.",
+          "at": "2026-10-15T23:41:02Z",
+          "filesHash": "cb3614c39a7b685d"
+        }
+      },
+      "baseCommit": "7d93e442140a3fcf4dab93f78a10f45dcb114c90",
+      "failedVerifies": 0
+    },
+    {
+      "id": "F016",
+      "behavior": "Export and import settings and reading time as a file from the settings panel",
+      "acceptance": [
+        "Export downloads a JSON file with preferences and reading time",
+        "Importing it applies preferences at once and merges reading time, keeping the larger value per day",
+        "A file that is not an OpenRead export changes nothing and shows a message"
+      ],
+      "dependsOn": [],
+      "state": "not_started",
+      "verification": [
+        "unit",
+        "stats-e2e",
+        "a11y"
+      ],
+      "refs": [
+        "R-20",
+        "D-22"
+      ],
+      "keep": [
+        "Recent and reading positions untouched by import"
+      ],
+      "review": true,
+      "notes": [],
+      "blockedReason": null,
+      "evidence": null
     }
   ],
   "lastWrapup": {
