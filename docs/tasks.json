@@ -1360,7 +1360,7 @@
         "Home with the panel has no WCAG A/AA violations and home JS stays within budget"
       ],
       "dependsOn": [],
-      "state": "verified",
+      "state": "passing",
       "verification": [
         "unit",
         "stats-e2e",
@@ -1443,6 +1443,13 @@
           "summary": "Independent review: day math, store snapshot, hydration, timer cleanup and project rules OK. Optional test tightening (idle 100-120s) applied.",
           "at": "2026-10-15T23:41:02Z",
           "filesHash": "cb3614c39a7b685d"
+        },
+        "commit": "6ebf6cf",
+        "doneAt": "2026-10-15T23:41:44Z",
+        "proof": {
+          "1": "stats-e2e: e2e/stats.spec.ts 'reading time counts only while the reader is visible and in use'",
+          "2": "stats-e2e: e2e/stats.spec.ts 'home shows a line of minutes per day and the total, and nothing before any reading'; unit: src/lib/reading-time.test.ts",
+          "3": "a11y: e2e/accessibility.spec.ts 'home and error pages' (with chart); bundle: home JS 180.6 KB gzip within budget"
         }
       },
       "baseCommit": "7d93e442140a3fcf4dab93f78a10f45dcb114c90",
@@ -1457,7 +1464,7 @@
         "A file that is not an OpenRead export changes nothing and shows a message"
       ],
       "dependsOn": [],
-      "state": "not_started",
+      "state": "passing",
       "verification": [
         "unit",
         "stats-e2e",
@@ -1471,15 +1478,83 @@
         "Recent and reading positions untouched by import"
       ],
       "review": true,
-      "notes": [],
+      "notes": [
+        "2026-10-15 review pass by reviewer: Independent review, second pass: status line stays in the accessibility tree, repeated messages re-announce, blob revoke deferred, import validated. Optional open: no cap on imported day count."
+      ],
       "blockedReason": null,
-      "evidence": null
+      "evidence": {
+        "version": 2,
+        "status": "passed",
+        "at": "2026-10-15T23:41:44Z",
+        "checks": [
+          {
+            "id": "unit",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 10.1,
+            "log": "docs/runs/F016-20261015T234144Z-unit.log"
+          },
+          {
+            "id": "stats-e2e",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 7.2,
+            "log": "docs/runs/F016-20261015T234144Z-stats-e2e.log"
+          },
+          {
+            "id": "a11y",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 10.7,
+            "log": "docs/runs/F016-20261015T234144Z-a11y.log"
+          },
+          {
+            "id": "lint",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 2.3,
+            "log": "docs/runs/F016-20261015T234144Z-lint.log"
+          },
+          {
+            "id": "typecheck",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 1.0,
+            "log": "docs/runs/F016-20261015T234144Z-typecheck.log"
+          },
+          {
+            "id": "build",
+            "outcome": "passed",
+            "exit": 0,
+            "seconds": 3.2,
+            "log": "docs/runs/F016-20261015T234144Z-build.log"
+          }
+        ],
+        "taskHash": "3158d79fce259099",
+        "filesHash": "cb3614c39a7b685d",
+        "review": {
+          "result": "pass",
+          "by": "reviewer",
+          "summary": "Independent review, second pass: status line stays in the accessibility tree, repeated messages re-announce, blob revoke deferred, import validated. Optional open: no cap on imported day count.",
+          "at": "2026-10-15T23:42:34Z",
+          "filesHash": "cb3614c39a7b685d"
+        },
+        "commit": "6ebf6cf",
+        "doneAt": "2026-10-15T23:42:35Z",
+        "proof": {
+          "1": "stats-e2e: e2e/stats.spec.ts 'settings and reading time move to another browser through Export and Import' (download contents); unit: src/lib/backup.test.ts 'reads back what it writes'",
+          "2": "stats-e2e: same test (theme/size applied, 600 kept over 60, 300 kept); unit: src/lib/reading-time.test.ts 'merges by keeping the larger value per day'",
+          "3": "stats-e2e: same test (bad file: message, theme and reading time unchanged); unit: src/lib/backup.test.ts 'refuses anything that isn't an OpenRead export'"
+        }
+      },
+      "baseCommit": "6ebf6cf58bff0b7a18d666140f1f0b33d0bd9aeb",
+      "failedVerifies": 0
     }
   ],
   "lastWrapup": {
-    "at": "2026-09-17T21:06:42Z",
+    "at": "2026-10-15T23:42:55Z",
     "clean": true,
     "problems": [],
-    "note": "Books, documents and Recent shipped: F006-F012 passing (security reviews on file intake, EPUB and the extractor; design reviews on Recent, the book reader and PDF). Next: push to main, which deploys to Vercel, then smoke-test the live site."
+    "note": "F015 reading-time chart and F016 settings export/import shipped in 6ebf6cf. Open, optional: cap imported day count; two visible windows count time twice. Next: push when the user asks."
   }
 }
